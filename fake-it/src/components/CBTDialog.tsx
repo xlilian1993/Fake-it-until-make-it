@@ -15,6 +15,60 @@ interface CBTDialogProps {
   onError?: (msg: string) => void;
 }
 
+function Avatar({ characterName, domainColor, size = 36 }: { characterName: string; domainColor: string; size?: number }) {
+  const av = getAvatar(characterName);
+  return (
+    <div
+      className="rounded-full flex items-center justify-center text-base flex-shrink-0 self-start"
+      style={{
+        width: size, height: size,
+        background: `radial-gradient(circle at 35% 30%, ${domainColor}, ${domainColor}dd)`,
+        border: '1.5px solid rgba(255,255,255,0.6)',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+        fontSize: size >= 36 ? '1.125rem' : '0.875rem',
+      }}
+    >
+      {isImageAvatar(av) ? (
+        <img src={av} alt={characterName} className="w-full h-full rounded-full object-cover" />
+      ) : av}
+    </div>
+  );
+}
+
+function PastBubble({ module, domainColor, characterName }: { module: CBTModule; domainColor: string; characterName: string }) {
+  return (
+    <div className="flex gap-3 mb-5">
+      <Avatar characterName={characterName} domainColor={domainColor} />
+      <div className="flex-1 min-w-0 opacity-65">
+        <p className="text-[11px] text-warm-gray/35 mb-1 px-1">
+          {module.title}
+        </p>
+        <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff' }}>
+          <p className="text-sm text-warm-black leading-relaxed whitespace-pre-wrap">
+            {module.content}
+          </p>
+        </div>
+        {module.index === 5 && 'action' in module && module.action && (
+          <div className="mt-2 space-y-2">
+            <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: `${domainColor}18` }}>
+              <p className="text-xs text-warm-gray mb-1">🎬 今天的排练</p>
+              <p className="text-sm text-warm-black">{module.action.firstStep}</p>
+            </div>
+            <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: `${domainColor}18` }}>
+              <p className="text-xs text-warm-gray mb-1">🎭 新台词</p>
+              <p className="text-sm text-warm-black">{module.action.emergencyScript}</p>
+            </div>
+            <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: `${domainColor}18` }}>
+              <p className="text-xs text-warm-gray mb-1">🪄 进阶剧本</p>
+              <p className="text-sm text-warm-black">{module.action.backupPlan}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function CBTDialog({ characterName, question, characterDomain, onClose, onError }: CBTDialogProps) {
   const [cbtData, setCbtData] = useState<CBTResponse | null>(null);
   const [currentModuleIdx, setCurrentModuleIdx] = useState(0);
@@ -69,98 +123,86 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
 
   return (
     <motion.div
-      className="absolute inset-0 z-50 flex flex-col bg-warm-white"
+      className="absolute inset-0 z-50 flex flex-col"
+      style={{ background: '#EDEDED' }}
       initial={{ opacity: 0, y: '100%' }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: '100%' }}
       transition={{ type: 'spring', damping: 28, stiffness: 280 }}
     >
-      {/* 顶部角色栏 */}
+      {/* 顶部导航栏 */}
       <div
-        className="flex items-center gap-3 px-4 py-3 border-b flex-shrink-0"
-        style={{ borderColor: 'var(--color-warm-border)' }}
+        className="flex items-center gap-3 px-4 py-3 flex-shrink-0"
+        style={{ background: '#EDEDED', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}
       >
         <button
           onClick={onClose}
-          className="w-8 h-8 rounded-full bg-warm-cream flex items-center justify-center hover:bg-warm-border transition-colors"
+          className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm"
           aria-label="返回"
         >
           <span className="text-warm-gray text-sm">←</span>
         </button>
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-xl flex-shrink-0"
-          style={{
-            background: `radial-gradient(circle at 35% 30%, ${domainColor} 0%, ${domainColor}cc 100%)`,
-            border: '2px solid rgba(255,255,255,0.6)',
-          }}
-        >
-          {(() => { const av = getAvatar(characterName); return isImageAvatar(av) ? <img src={av} alt={characterName} className="w-full h-full rounded-full object-cover" /> : av; })()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-heading text-sm font-medium text-warm-black truncate">
+        <div className="flex-1 text-center">
+          <p className="font-heading text-sm font-semibold text-warm-black">
             {characterName}
           </p>
-          <p className="text-xs text-warm-gray truncate">
-            {question}
-          </p>
         </div>
+        <div className="w-8" />
       </div>
 
-      {/* 内容区 */}
-      <div className="flex-1 overflow-y-auto p-4">
+      {/* 内容区 — 聊天流 */}
+      <div className="flex-1 overflow-y-auto px-4 py-4">
         {isLoading && (
-          <div className="flex flex-col items-center justify-center h-full gap-3">
-            <div className="w-12 h-12 rounded-full pulse-soft flex items-center justify-center text-2xl"
-              style={{ background: `${domainColor}33` }}
-            >
-              {(() => { const av = getAvatar(characterName); return isImageAvatar(av) ? <img src={av} alt={characterName} className="w-full h-full rounded-full object-cover" /> : av; })()}
+          <div className="flex gap-3 mb-5">
+            <Avatar characterName={characterName} domainColor={domainColor} />
+            <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff' }}>
+              <p className="text-sm text-warm-gray pulse-soft">
+                正在为你改写剧本...
+              </p>
             </div>
-            <p className="text-sm text-warm-gray pulse-soft">
-              正在思考...
-            </p>
           </div>
         )}
 
         {!isLoading && cbtData && (
-          <div className="space-y-6">
-            {cbtData.modules.slice(0, currentModuleIdx + 1).map((module: CBTModule, idx: number) => (
-              <div key={idx}>
-                {idx < currentModuleIdx ? (
-                  <div className="opacity-70">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-philosopher/20 text-xs font-medium text-warm-black">
-                        {module.index}
-                      </span>
-                      <h4 className="font-heading text-sm font-medium text-warm-black">
-                        {module.title}
-                      </h4>
-                    </div>
-                    <p className="text-sm text-warm-black leading-relaxed whitespace-pre-wrap pl-8">
-                      {module.content}
-                    </p>
-                    {module.index === 5 && 'action' in module && module.action && (
-                      <div className="mt-3 space-y-2 pl-8">
-                        <div className="bg-warm-cream rounded-lg p-3">
-                          <p className="text-xs text-warm-gray mb-1">📍 今天的第一步</p>
-                          <p className="text-sm text-warm-black">{module.action.firstStep}</p>
-                        </div>
-                        <div className="bg-warm-cream rounded-lg p-3">
-                          <p className="text-xs text-warm-gray mb-1">💬 应急话术</p>
-                          <p className="text-sm text-warm-black">{module.action.emergencyScript}</p>
-                        </div>
-                        <div className="bg-warm-cream rounded-lg p-3">
-                          <p className="text-xs text-warm-gray mb-1">🔄 备选方案</p>
-                          <p className="text-sm text-warm-black">{module.action.backupPlan}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <CBTModuleView module={module} onComplete={handleModuleComplete} />
-                )}
+          <>
+            {/* 开场白 — 始终在顶部 */}
+            <motion.div
+              className="flex gap-3 mb-5"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 0.65, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Avatar characterName={characterName} domainColor={domainColor} />
+              <div className="flex-1 min-w-0">
+                <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff' }}>
+                  <p className="text-sm text-warm-black leading-relaxed">
+                    让我帮你改编你的人生剧本吧
+                  </p>
+                </div>
               </div>
+            </motion.div>
+
+            {/* 已完成模块（聊天气泡） */}
+            {cbtData.modules.slice(0, currentModuleIdx).map((module, idx) => (
+              <PastBubble
+                key={idx}
+                module={module}
+                domainColor={domainColor}
+                characterName={characterName}
+              />
             ))}
 
+            {/* 当前正在输出的模块 */}
+            {currentModuleIdx < cbtData.modules.length && (
+              <CBTModuleView
+                module={cbtData.modules[currentModuleIdx]}
+                characterName={characterName}
+                avatarColor={domainColor}
+                onComplete={handleModuleComplete}
+              />
+            )}
+
+            {/* 全部完成 */}
             {allComplete && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -179,7 +221,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                 </button>
               </motion.div>
             )}
-          </div>
+          </>
         )}
       </div>
     </motion.div>
