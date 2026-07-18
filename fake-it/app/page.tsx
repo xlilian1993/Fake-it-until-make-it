@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { StoryModal } from '@/components/StoryModal';
 import { CBTDialog } from '@/components/CBTDialog';
@@ -81,17 +81,25 @@ export default function Page() {
   const [roundTableLoadingText, setRoundTableLoadingText] = useState('');
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  const [, setDragState] = useState<{
-    isDragging: boolean; dragId: string | null;
-    isOverDropZone: boolean;
+  const [dragState, setDragState] = useState<{
+    isDragging: boolean; dragId: string | null; isOverDropZone: boolean;
   }>({ isDragging: false, dragId: null, isOverDropZone: false });
 
   const startPos = useRef<{ x: number; y: number } | null>(null);
   const hasMoved = useRef(false);
   const dragIdRef = useRef<string | null>(null);
-  const ghostRef = useRef<HTMLDivElement>(null);
+  const ghostRef = useRef<HTMLDivElement | null>(null);
   const bubblesRef = useRef<Bubble[]>([]);
   bubblesRef.current = bubbles;
+
+  // 初始化幽灵 DOM 元素挂到 body
+  useEffect(() => {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;display:none;z-index:99999;border-radius:50%;overflow:hidden;opacity:0.9;transform:scale(1.1);pointer-events:none';
+    document.body.appendChild(el);
+    ghostRef.current = el;
+    return () => { el.remove(); ghostRef.current = null; };
+  }, []);
 
   const handlePointerDown = useCallback((e: React.PointerEvent, id: string) => {
     startPos.current = { x: e.clientX, y: e.clientY };
@@ -105,41 +113,28 @@ export default function Page() {
       if (dx > 5 || dy > 5) hasMoved.current = true;
 
       if (hasMoved.current) {
-        // 首次移动时初始化幽灵外观
-        let ghostSize = 0;
         const b = bubblesRef.current.find(bb => bb.character.id === dragIdRef.current);
-        if (b) ghostSize = b.size === 'large' ? 80 : b.size === 'medium' ? 60 : 44;
-        if (ghostRef.current && ghostRef.current.style.display === 'none') {
-          if (b) {
-            ghostRef.current.style.width = `${ghostSize}px`;
-            ghostRef.current.style.height = `${ghostSize}px`;
-            ghostRef.current.style.background = `radial-gradient(circle at 35% 30%, ${b.color}, ${b.color}dd)`;
-            ghostRef.current.style.fontSize = b.size === 'large' ? '32px' : b.size === 'medium' ? '24px' : '18px';
-            ghostRef.current.style.border = '2px solid rgba(255,255,255,0.5)';
-            ghostRef.current.innerHTML = isImageAvatar(b.character.avatar)
-              ? `<img src="${b.character.avatar}" alt="${b.character.name}" style="width:100%;height:100%;border-radius:50%;object-fit:cover" />`
-              : b.character.avatar;
-          }
-        }
+        if (!b || !ghostRef.current) return;
+        const sz = b.size === 'large' ? 80 : b.size === 'medium' ? 60 : 44;
         let overDrop = false;
         if (dropZoneRef.current) {
           const rect = dropZoneRef.current.getBoundingClientRect();
           overDrop = ev.clientX >= rect.left && ev.clientX <= rect.right
             && ev.clientY >= rect.top && ev.clientY <= rect.bottom;
         }
-        // 直接操作 DOM 更新幽灵位置，避免 React 渲染延迟
-        if (ghostRef.current) {
-          ghostRef.current.style.left = `${ev.clientX - ghostSize / 2}px`;
-          ghostRef.current.style.top = `${ev.clientY - ghostSize / 2}px`;
-          ghostRef.current.style.display = '';
-          ghostRef.current.style.borderColor = overDrop ? 'var(--color-philosopher)' : 'rgba(255,255,255,0.5)';
-          ghostRef.current.style.boxShadow = overDrop
-            ? '0 0 20px rgba(184,169,255,0.5), 0 4px 12px rgba(0,0,0,0.2)'
-            : '0 4px 12px rgba(0,0,0,0.2)';
-        }
-        setDragState({
-          isDragging: true, dragId: dragIdRef.current, isOverDropZone: overDrop,
-        });
+        const g = ghostRef.current;
+        g.style.width = g.style.height = `${sz}px`;
+        g.style.left = `${ev.clientX - sz / 2}px`;
+        g.style.top = `${ev.clientY - sz / 2}px`;
+        g.style.background = `radial-gradient(circle at 35% 30%, ${b.color}, ${b.color}dd)`;
+        g.style.fontSize = sz >= 80 ? '32px' : sz >= 60 ? '24px' : '18px';
+        g.style.border = overDrop ? '3px solid var(--color-philosopher)' : '2px solid rgba(255,255,255,0.5)';
+        g.style.boxShadow = overDrop ? '0 0 20px rgba(184,169,255,0.5), 0 4px 12px rgba(0,0,0,0.2)' : '0 4px 12px rgba(0,0,0,0.2)';
+        g.innerHTML = isImageAvatar(b.character.avatar)
+          ? `<img src="${b.character.avatar}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover" />`
+          : b.character.avatar;
+        g.style.display = '';
+        setDragState({ isDragging: true, dragId: dragIdRef.current, isOverDropZone: overDrop });
       }
     };
 
@@ -160,8 +155,8 @@ export default function Page() {
           }
         }
       }
-      setDragState({ isDragging: false, dragId: null, isOverDropZone: false });
       if (ghostRef.current) ghostRef.current.style.display = 'none';
+      setDragState({ isDragging: false, dragId: null, isOverDropZone: false });
       startPos.current = null;
       hasMoved.current = false;
       dragIdRef.current = null;
@@ -335,12 +330,6 @@ export default function Page() {
               );
             })}
 
-            {/* 拖拽幽灵 — DOM 由 ref 直接控制，不依赖 React 渲染 */}
-            <div
-              ref={ghostRef}
-              className="fixed pointer-events-none z-50 rounded-full overflow-hidden flex items-center justify-center"
-              style={{ display: 'none', opacity: 0.9, transform: 'scale(1.1)' }}
-            />
           </div>
         )}
 

@@ -28,7 +28,26 @@ export function buildRecommendPrompt(question: string): string {
 ## domain 分类
 必须从以下选择：leader（领袖）、philosopher（哲人）、explorer（探索者）、healer（治愈者）、rebel（反叛者）、creator（创作者）
 
-只返回 JSON，第一行必须是 {"characters":[，不要其他任何文字。`;
+只返回 JSON，严格遵循以下结构，不要其他任何文字：
+
+{
+  "characters": [
+    {
+      "name": "角色名",
+      "matchScore": 85,
+      "domain": "leader",
+      "source": "real",
+      "story": {
+        "intro": { "name": "角色名", "source": "来源描述", "tagline": "一句话标签" },
+        "facets": [
+          { "label": "片段标题", "content": "第一人称讲述，2-3句话" },
+          { "label": "片段标题", "content": "第一人称讲述，2-3句话" },
+          { "label": "片段标题", "content": "第一人称讲述，2-3句话" }
+        ]
+      }
+    }
+  ]
+}`;
 }
 
 export function buildCBTPrompt(characterName: string, question: string): string {
