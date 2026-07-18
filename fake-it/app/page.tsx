@@ -7,6 +7,7 @@ import { CBTDialog } from '@/components/CBTDialog';
 import { BottomBar } from '@/components/BottomBar';
 import { RoundTableResult } from '@/components/RoundTableResult';
 import { MysteryBubble } from '@/components/MysteryBubble';
+import { LoadingRoller } from '@/components/LoadingRoller';
 import type { Bubble, RecommendItem } from '@/types';
 import { matchScoreToSize, SIZE_PX, DOMAIN_COLORS } from '@/lib/colors';
 import { getAvatar, isImageAvatar } from '@/lib/avatars';
@@ -329,14 +330,8 @@ export default function Page() {
       <div className="relative flex-1" style={{ minHeight: '400px' }}>
         {/* 气泡 */}
         {isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-            <div className="flex gap-2">
-              {[0, 1, 2].map(i => (
-                <div key={i} className="w-3 h-3 rounded-full pulse-soft"
-                  style={{ background: 'var(--color-philosopher)', animationDelay: `${i * 0.2}s` }} />
-              ))}
-            </div>
-            <p className="text-sm text-warm-gray pulse-soft">{loadingText}</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <LoadingRoller text={loadingText} />
           </div>
         )}
 
@@ -416,7 +411,7 @@ export default function Page() {
 
         
       {/* 圆桌区 — 三角形布局 */}
-        {bubbles.length > 0 && (
+        {bubbles.length > 0 && !isLoading && (
           <div
             ref={dropZoneRef}
             className="absolute z-30"
