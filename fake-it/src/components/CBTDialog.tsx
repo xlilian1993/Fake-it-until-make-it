@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CBTModuleView } from './CBTModule';
-import { getAvatar } from '@/lib/avatars';
+import { getAvatar, isImageAvatar } from '@/lib/avatars';
 import { DOMAIN_COLORS } from '@/lib/colors';
 import type { CBTResponse, CBTModule } from '@/types';
 
@@ -94,7 +94,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
             border: '2px solid rgba(255,255,255,0.6)',
           }}
         >
-          {getAvatar(characterName)}
+          {(() => { const av = getAvatar(characterName); return isImageAvatar(av) ? <img src={av} alt={characterName} className="w-full h-full rounded-full object-cover" /> : av; })()}
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-heading text-sm font-medium text-warm-black truncate">
@@ -113,7 +113,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
             <div className="w-12 h-12 rounded-full pulse-soft flex items-center justify-center text-2xl"
               style={{ background: `${domainColor}33` }}
             >
-              {getAvatar(characterName)}
+              {(() => { const av = getAvatar(characterName); return isImageAvatar(av) ? <img src={av} alt={characterName} className="w-full h-full rounded-full object-cover" /> : av; })()}
             </div>
             <p className="text-sm text-warm-gray pulse-soft">
               正在思考...

@@ -78,6 +78,11 @@ export interface CBTModule {
   index: 1 | 2 | 3 | 4 | 5;
   title: string;
   content: string;
+  action?: {
+    firstStep: string;
+    emergencyScript: string;
+    backupPlan: string;
+  };
 }
 
 export interface CBTActionModule extends CBTModule {
@@ -92,4 +97,16 @@ export interface CBTResponse {
   characterName: string;
   question: string;
   modules: CBTModule[];
+}
+
+// ============ 圆桌讨论 ============
+export interface RoundTablePerspective {
+  characterName: string;
+  viewpoint: string;   // 一句话立场
+  story: string;       // 一个相关故事
+}
+
+export interface RoundTableResponse {
+  question: string;
+  perspectives: RoundTablePerspective[];
 }

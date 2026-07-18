@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import type { RecommendItem } from '@/types';
-import { getAvatar } from '@/lib/avatars';
+import { getAvatar, isImageAvatar } from '@/lib/avatars';
 import { DOMAIN_COLORS } from '@/lib/colors';
 
 interface StoryModalProps {
@@ -72,7 +72,12 @@ export function StoryModal({ character, onClose, onChat }: StoryModalProps) {
                     boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                   }}
                 >
-                  {getAvatar(character.name)}
+                  {(() => {
+                    const av = getAvatar(character.name);
+                    return isImageAvatar(av) ? (
+                      <img src={av} alt={character.name} className="w-full h-full rounded-full object-cover" />
+                    ) : av;
+                  })()}
                 </div>
                 <div>
                   <h2 className="font-heading text-xl text-warm-black leading-tight">
