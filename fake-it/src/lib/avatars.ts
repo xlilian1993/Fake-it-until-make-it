@@ -26,6 +26,17 @@ const AVATAR_MAP: Record<string, string> = {
   '达芬奇': '/avatars/davinci.png',
   '莫扎特': '/avatars/mozart.png',
   '张桂梅': '/avatars/zhangguimei.jpg',
+  '安陵容': '/avatars/anlingrong.png',
+  '苏轼': '/avatars/sushi.png',
+  '王阳明': '/avatars/wangyangming.png',
+  '爱因斯坦': '/avatars/einstein.png',
+  '孙悟空': '/avatars/sunwukong.png',
+  '莎士比亚': '/avatars/shakespeare.png',
+  '李白': '/avatars/libai.png',
+  '武则天': '/avatars/wuzetian.png',
+  '诸葛亮': '/avatars/zhugeliang.png',
+  '梵高': '/avatars/vangogh.png',
+  '王菲': '/avatars/wangfei.png',
 };
 
 export function getAvatar(name: string): string {
