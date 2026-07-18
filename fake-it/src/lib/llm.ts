@@ -32,6 +32,7 @@ export async function callLLM(prompt: string): Promise<string> {
       model: LLM_CONFIG.model,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.8,
+      response_format: { type: 'json_object' },
     }),
   });
 
@@ -47,9 +48,11 @@ export async function callLLM(prompt: string): Promise<string> {
 export function extractJSON(text: string): string {
   let cleaned = text;
 
+  // 1. 去除 markdown 代码块
   const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (codeBlockMatch) cleaned = codeBlockMatch[1];
 
+  // 2. 找到最外层 JSON
   const firstBrace = cleaned.indexOf('{');
   const firstBracket = cleaned.indexOf('[');
   const lastBrace = cleaned.lastIndexOf('}');
@@ -64,10 +67,15 @@ export function extractJSON(text: string): string {
     cleaned = cleaned.slice(start, end + 1);
   }
 
+  // 3. 去除不可见控制字符
   cleaned = cleaned.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
-  cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
-  cleaned = cleaned.replace(/\u201C/g, '"').replace(/\u201D/g, '"');
-  cleaned = cleaned.replace(/\u2018/g, "'").replace(/\u2019/g, "'");
+
+  // 4. 修复常见 JSON 问题
+  cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1'); // 尾随逗号
+  cleaned = cleaned.replace(/\u201C/g, '"').replace(/\u201D/g, '"'); // 中文双引号
+  cleaned = cleaned.replace(/\u2018/g, "'").replace(/\u2019/g, "'"); // 中文单引号
+  // 修复未转义的控制字符和无效转义
+  cleaned = cleaned.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
 
   return cleaned.trim();
 }
