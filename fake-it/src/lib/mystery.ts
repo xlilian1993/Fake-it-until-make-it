@@ -10,7 +10,7 @@ export interface MysteryEntry {
 const MYSTERY_POOL: MysteryEntry[] = [
   { name: '甄嬛', domain: 'leader', source: 'tv' },
   { name: '林黛玉', domain: 'creator', source: 'book' },
-  { name: 'Steve Jobs', domain: 'leader', source: 'real' },
+  { name: '乔布斯', domain: 'leader', source: 'real' },
   { name: '宫崎骏', domain: 'creator', source: 'real' },
   { name: '庄子', domain: 'philosopher', source: 'real' },
   { name: '马斯克', domain: 'explorer', source: 'real' },

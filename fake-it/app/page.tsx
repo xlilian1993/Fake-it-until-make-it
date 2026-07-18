@@ -353,33 +353,41 @@ export default function Page() {
         </div>
       )}
 
-      {/* 输入框 */}
-      <div className={`px-5 flex-shrink-0 ${isEmpty ? 'pb-8' : 'pt-3 pb-1'}`}>
-        <div className="flex gap-2 items-end">
-          <textarea value={question} onChange={(e) => {
-              setQuestion(e.target.value);
-              const el = e.target;
-              el.style.height = 'auto';
-              el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-            }}
-            onKeyDown={handleKeyDown} placeholder="今天想聊点什么" maxLength={200} rows={1}
-            className="input-warm flex-1 px-4 py-3 text-sm text-warm-black placeholder:text-warm-gray/50 rounded-2xl resize-none"
-            style={{ minHeight: '48px', maxHeight: '120px' }}
-            aria-label="输入你的问题" />
-          <button onClick={handleSubmit} disabled={!question.trim() || isLoading}
-            className="px-5 py-3 rounded-2xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))', minHeight: '48px' }}
-            aria-label="提交问题">
-            {isLoading ? '...' : '→'}
-          </button>
-        </div>
-        {error && <p className="text-xs text-red-500 mt-1.5 px-1">{error}</p>}
-        {!isLoading && bubbles.length > 0 && (
-          <p className="text-xs text-warm-gray/50 text-center mt-1.5">
-            点击气泡聊一聊，或拖拽气泡到圆桌开始群聊
+      {/* 提示 / 输入框 */}
+      {bubbles.length > 0 && !isLoading ? (
+        <div className="px-5 pt-4 pb-1 flex-shrink-0">
+          <p className="text-sm text-warm-gray/50 text-center">
+            点击气泡跟TA聊聊，或者拖进圆桌群聊
           </p>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className={`px-5 flex-shrink-0 ${isEmpty ? 'pb-8' : 'pt-3 pb-1'}`}>
+          <div className="flex gap-2 items-end">
+            <textarea value={question} onChange={(e) => {
+                setQuestion(e.target.value);
+                const el = e.target;
+                el.style.height = 'auto';
+                el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+              }}
+              onKeyDown={handleKeyDown} placeholder="今天想聊点什么" maxLength={200} rows={1}
+              className="input-warm flex-1 px-4 py-3 text-sm text-warm-black placeholder:text-warm-gray/50 rounded-2xl resize-none"
+              style={{ minHeight: '48px', maxHeight: '120px' }}
+              aria-label="输入你的问题" />
+            <button onClick={handleSubmit} disabled={!question.trim() || isLoading}
+              className="px-5 py-3 rounded-2xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))', minHeight: '48px' }}
+              aria-label="提交问题">
+              {isLoading ? '...' : '→'}
+            </button>
+          </div>
+          {error && <p className="text-xs text-red-500 mt-1.5 px-1">{error}</p>}
+          {!isLoading && bubbles.length > 0 && (
+            <p className="text-xs text-warm-gray/50 text-center mt-1.5">
+              点击气泡聊一聊，或拖拽气泡到圆桌开始群聊
+            </p>
+          )}
+        </div>
+      )}
 
       {/* 气泡区域 + 圆桌 */}
       {(isLoading || bubbles.length > 0) && (

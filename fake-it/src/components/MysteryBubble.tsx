@@ -70,14 +70,13 @@ export function MysteryBubble({ bubble, onClick, onPointerDown }: MysteryBubbleP
             style={{
               width: sz, height: sz,
               background: 'radial-gradient(circle at 35% 30%, #FFD700, #E8A800)',
-              border: '2px solid rgba(255, 215, 0, 0.6)',
               boxShadow: '0 0 12px rgba(255, 215, 0, 0.4), 0 0 24px rgba(255, 215, 0, 0.2)',
             }}
           >
             <img
               src={mysteryFace}
               alt="神秘角色"
-              style={{ width: '75%', height: '75%', objectFit: 'contain' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
 
