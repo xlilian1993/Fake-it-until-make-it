@@ -22,11 +22,9 @@ export function Bubble({ bubble, onClick }: BubbleProps) {
         left: bubble.position.x - touchSize / 2,
         top: bubble.position.y - touchSize / 2,
         background: `radial-gradient(circle at 35% 30%, ${bubble.color}ee 0%, ${bubble.color} 70%, ${bubble.color}cc 100%)`,
-        '--bubble-duration': `${bubble.animationDuration}s`,
-        '--bubble-delay': `${bubble.animationDelay}s`,
         fontSize: sizePx >= 80 ? 32 : sizePx >= 60 ? 24 : 18,
         border: '2px solid rgba(255,255,255,0.5)',
-      }}
+      } as React.CSSProperties}
       onClick={() => onClick(bubble.character.name)}
       aria-label={`角色 ${bubble.character.name}`}
     >

@@ -1,3 +1,5 @@
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 const AVATAR_MAP: Record<string, string> = {
   '甄嬛': '/avatars/zhenhuan.png',
   '林黛玉': '/avatars/lindaiyu.png',
@@ -27,9 +29,10 @@ const AVATAR_MAP: Record<string, string> = {
 };
 
 export function getAvatar(name: string): string {
-  return AVATAR_MAP[name] || '🫧';
+  const path = AVATAR_MAP[name];
+  return path ? `${BASE}${path}` : '🫧';
 }
 
 export function isImageAvatar(avatar: string): boolean {
-  return avatar.startsWith('/');
+  return avatar.includes('/avatars/');
 }

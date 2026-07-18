@@ -82,7 +82,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
     async function fetchCBT() {
       try {
         setIsLoading(true);
-        const res = await fetch('/api/cbt', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/cbt`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ characterName, question }),

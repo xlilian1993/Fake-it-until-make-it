@@ -5,7 +5,6 @@ import { AnimatePresence } from 'framer-motion';
 import { StoryModal } from '@/components/StoryModal';
 import { CBTDialog } from '@/components/CBTDialog';
 import { BottomBar } from '@/components/BottomBar';
-import { RoundTable } from '@/components/RoundTable';
 import { RoundTableResult } from '@/components/RoundTableResult';
 import type { Bubble, RecommendItem } from '@/types';
 import { matchScoreToSize, SIZE_PX, DOMAIN_COLORS } from '@/lib/colors';
@@ -82,7 +81,7 @@ export default function Page() {
   const [roundTableLoadingText, setRoundTableLoadingText] = useState('');
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  const [dragState, setDragState] = useState<{
+  const [, setDragState] = useState<{
     isDragging: boolean; dragId: string | null;
     isOverDropZone: boolean;
   }>({ isDragging: false, dragId: null, isOverDropZone: false });
@@ -181,7 +180,7 @@ export default function Page() {
     setError(null); setIsLoading(true); setLoadingText('正在为你寻找角色...');
     setRoundTableMembers([]); setRoundTablePerspectives([]);
 
-    fetch('/api/recommend', {
+    fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/recommend`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question }),
     })
@@ -211,7 +210,7 @@ export default function Page() {
     try {
       // 第一人（无 previous）
       setRoundTableLoadingText(`${names[0]} 正在发言...`);
-      const r1 = await fetch('/api/roundtable', {
+      const r1 = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/roundtable`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ characterName: names[0], question }),
       });
@@ -222,7 +221,7 @@ export default function Page() {
 
       // 第二人（基于第一人）
       setRoundTableLoadingText(`${names[1]} 正在回应 ${names[0]}...`);
-      const r2 = await fetch('/api/roundtable', {
+      const r2 = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/roundtable`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ characterName: names[1], question, previous: { name: p1.characterName, viewpoint: p1.viewpoint, story: p1.story } }),
       });
@@ -233,7 +232,7 @@ export default function Page() {
 
       // 第三人（基于第二人）
       setRoundTableLoadingText(`${names[2]} 正在回应 ${names[1]}...`);
-      const r3 = await fetch('/api/roundtable', {
+      const r3 = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/roundtable`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ characterName: names[2], question, previous: { name: p2.characterName, viewpoint: p2.viewpoint, story: p2.story } }),
       });

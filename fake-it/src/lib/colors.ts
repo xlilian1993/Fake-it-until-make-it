@@ -15,6 +15,12 @@ export const SIZE_PX: Record<BubbleSize, number> = {
   small: 44,
 };
 
+export const SIZE_TOUCH: Record<BubbleSize, number> = {
+  large: 96,
+  medium: 72,
+  small: 56,
+};
+
 export function matchScoreToSize(score: number): BubbleSize {
   if (score >= 80) return 'large';
   if (score >= 60) return 'medium';

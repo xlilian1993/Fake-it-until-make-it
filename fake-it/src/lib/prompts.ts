@@ -2,17 +2,33 @@ import { getCharacterNames } from './characters';
 
 export function buildRecommendPrompt(question: string): string {
   const names = getCharacterNames().join('、');
-  return `从角色池中选 5 位与问题最相关的角色。
+  return `你是一个角色推荐引擎。用户遇到了困境，需要从角色池中选出 5 位最能帮到 Ta 的角色。
 
 角色池：${names}
 用户问题："${question}"
 
-你必须只返回一个 JSON 对象，第一行必须是 {"characters":[，不要任何其他文字。
+## 选角规则
+- 选 5 个角色，按匹配度从高到低排序（matchScore: 95-65）
+- 必须来自不同领域，确保视角多元
+- 优先选与问题强相关的角色（比如用户问职场压力，优先选经历过类似困境的角色）
 
-格式：
-{"characters":[{"name":"角色名","matchScore":85,"domain":"leader","source":"real","story":{"intro":{"name":"角色名","source":"来源","tagline":"标签"},"facets":[{"label":"标题","content":"2-3句话"},{"label":"标题","content":"2-3句话"},{"label":"标题","content":"2-3句话"}]}},{"name":"角色名2","matchScore":80,"domain":"philosopher","source":"real","story":{"intro":{"name":"角色名2","source":"来源","tagline":"标签"},"facets":[{},{},{}]}},{"name":"角色名3","matchScore":75,"domain":"explorer","source":"real","story":{"intro":{"name":"角色名3","source":"来源","tagline":"标签"},"facets":[{},{},{}]}},{"name":"角色名4","matchScore":70,"domain":"healer","source":"tv","story":{"intro":{"name":"角色名4","source":"来源","tagline":"标签"},"facets":[{},{},{}]}},{"name":"角色名5","matchScore":65,"domain":"creator","source":"real","story":{"intro":{"name":"角色名5","source":"来源","tagline":"标签"},"facets":[{},{},{}]}}]}
+## 故事要求
+每个角色需提供 3 个生命片段（facets），每个片段是一个独立的、有画面感的小故事：
+- label：2-4 个字的标题，要有文学感（如「被逐出宫」「七次退休」「梦蝶」）
+- content：用角色的第一人称口吻写 2-3 句话，像 Ta 在亲口对你讲述。要具体、有细节，不要泛泛而谈
+- 3 个片段应覆盖：1) 角色的至暗时刻  2) 角色的转折或顿悟  3) 角色对后人的启示
 
-要求：5 个角色来自不同领域，只返回 JSON，第一行必须是 {"characters":[。`;
+## tagline
+为每个角色写一句 10 字以内的标签，概括 Ta 的核心精神（如「深宫中的生存智慧」「Stay hungry, stay foolish」）
+
+## source 格式
+- 来自影视作品用具体片名（如「电视剧《甄嬛传》」「电影《千与千寻》」）
+- 来自历史/现实用简洁描述（如「Apple 创始人」「道家经典」「法国物理学家」）
+
+## domain 分类
+必须从以下选择：leader（领袖）、philosopher（哲人）、explorer（探索者）、healer（治愈者）、rebel（反叛者）、creator（创作者）
+
+只返回 JSON，第一行必须是 {"characters":[，不要其他任何文字。`;
 }
 
 export function buildCBTPrompt(characterName: string, question: string): string {
