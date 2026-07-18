@@ -151,7 +151,11 @@ export default function Page() {
             c => c.name.toLowerCase().replace(/\s+/g, '-') === dragIdRef.current
           );
           if (item && !roundTableMembers.find(m => m.name === item.name)) {
-            setRoundTableMembers(prev => [...prev, item]);
+            setRoundTableMembers(prev => {
+              const next = [...prev, item];
+              if (next.length > MAX_ROUNDTABLE_MEMBERS) next.shift();
+              return next;
+            });
           }
         }
       }
@@ -204,7 +208,7 @@ export default function Page() {
 
     try {
       // 第一人（无 previous）
-      setRoundTableLoadingText(`${names[0]} 正在发言...`);
+      setRoundTableLoadingText(`${names[0]} 正在抢麦...`);
       const r1 = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/roundtable`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ characterName: names[0], question }),
@@ -215,7 +219,7 @@ export default function Page() {
       setRoundTablePerspectives([p1]);
 
       // 第二人（基于第一人）
-      setRoundTableLoadingText(`${names[1]} 正在回应 ${names[0]}...`);
+      setRoundTableLoadingText(`${names[1]} 正在接话 ${names[0]}...`);
       const r2 = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/roundtable`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ characterName: names[1], question, previous: { name: p1.characterName, viewpoint: p1.viewpoint, story: p1.story } }),
@@ -226,7 +230,7 @@ export default function Page() {
       setRoundTablePerspectives([p1, p2]);
 
       // 第三人（基于第二人）
-      setRoundTableLoadingText(`${names[2]} 正在回应 ${names[1]}...`);
+      setRoundTableLoadingText(`${names[2]} 正在接话 ${names[1]}...`);
       const r3 = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/roundtable`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ characterName: names[2], question, previous: { name: p2.characterName, viewpoint: p2.viewpoint, story: p2.story } }),
@@ -343,57 +347,83 @@ export default function Page() {
         )}
 
         
-      {/* 圆桌区 */}
+      {/* 圆桌区 — 三角形布局 */}
         {bubbles.length > 0 && (
           <div
             ref={dropZoneRef}
-            className="absolute bottom-3 right-3 z-30 rounded-2xl p-3"
+            className="absolute z-30"
             style={{
-              width: '120px',
-              background: isRoundTableReady ? 'rgba(184,169,255,0.25)' : 'rgba(0,0,0,0.08)',
-              border: isRoundTableReady ? '2px dashed var(--color-philosopher)' : '2px dashed rgba(0,0,0,0.15)',
-              backdropFilter: 'blur(8px)',
+              right: '20px', bottom: '20px',
+              width: '130px', height: '130px',
             }}
           >
-            <p className="text-xs text-warm-gray text-center mb-2 font-medium">
-              🔵 圆桌 {roundTableMembers.length}/{MAX_ROUNDTABLE_MEMBERS}
-            </p>
-            <div className="flex flex-col gap-2 items-center">
-              {Array.from({ length: MAX_ROUNDTABLE_MEMBERS }).map((_, i) => {
-                const m = roundTableMembers[i];
-                if (m) {
-                  const color = DOMAIN_COLORS[m.domain] || '#FFD49E';
-                  return (
-                    <div key={i} className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
-                      style={{
-                        background: `radial-gradient(circle at 35% 30%, ${color}, ${color}dd)`,
-                        border: '2px solid rgba(255,255,255,0.6)',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                      }}>
-                      {(() => { const av = getAvatar(m.name); return isImageAvatar(av) ? <img src={av} alt={m.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} /> : av; })()}
-                    </div>
-                  );
-                }
+            {/* 中心虚线圆环 */}
+            <div className="absolute inset-0 rounded-full"
+              style={{
+                border: isRoundTableReady
+                  ? '1.5px dashed rgba(184,169,255,0.35)'
+                  : '1.5px dashed rgba(0,0,0,0.08)',
+              }}
+            />
+
+            {/* 三个角色三角排列 */}
+            {Array.from({ length: MAX_ROUNDTABLE_MEMBERS }).map((_, i) => {
+              // 三点钟方向：上、右下、左下
+              const angles = [-90, 30, 150]; // 上、右下、左下 各差 120°
+              const angle = (angles[i] * Math.PI) / 180;
+              const r = 42;
+              const cx = 65, cy = 65;
+              const s = 46;
+              const m = roundTableMembers[i];
+              const x = cx + r * Math.cos(angle) - s / 2;
+              const y = cy + r * Math.sin(angle) - s / 2;
+              if (m) {
+                const color = DOMAIN_COLORS[m.domain] || '#FFD49E';
                 return (
-                  <div key={i} className="w-10 h-10 rounded-full border-2 border-dashed flex items-center justify-center"
-                    style={{ borderColor: 'rgba(0,0,0,0.12)' }}>
-                    <span className="text-xs text-warm-gray/40">+</span>
+                  <div key={i} className="absolute rounded-full flex items-center justify-center text-lg cursor-pointer hover:scale-110 active:scale-90 transition-transform"
+                    onClick={() => setRoundTableMembers(prev => prev.filter((_, j) => j !== i))}
+                    title="点击移出"
+                    style={{
+                      width: s, height: s,
+                      left: x, top: y,
+                      background: `radial-gradient(circle at 35% 30%, ${color}ee, ${color})`,
+                      border: '2px solid rgba(255,255,255,0.7)',
+                      boxShadow: '0 3px 12px rgba(0,0,0,0.12)',
+                    }}>
+                    {(() => { const av = getAvatar(m.name); return isImageAvatar(av) ? <img src={av} alt={m.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} /> : av; })()}
                   </div>
                 );
-              })}
+              }
+              return (
+                <div key={i} className="absolute rounded-full flex items-center justify-center"
+                  style={{
+                    width: s, height: s,
+                    left: x, top: y,
+                    border: '1.5px dashed rgba(0,0,0,0.1)',
+                    borderRadius: '50%',
+                  }}>
+                  <span className="text-sm text-warm-gray/20">+</span>
+                </div>
+              );
+            })}
+
+            {/* 中心 */}
+            <div className="absolute flex flex-col items-center" style={{ left: '50%', top: '50%', transform: 'translate(-50%,-50%)' }}>
+              {isRoundTableReady ? (
+                <button onClick={handleRoundTableStart}
+                  className="px-4 py-2 rounded-full text-xs font-semibold text-white shadow-lg transition-all hover:opacity-90 active:scale-95 pulse-soft"
+                  style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}>
+                  开始讨论
+                </button>
+              ) : roundTableMembers.length > 0 ? (
+                <button onClick={() => setRoundTableMembers([])}
+                  className="text-[11px] text-warm-gray/40 hover:text-warm-gray transition-colors">
+                  {roundTableMembers.length}/{MAX_ROUNDTABLE_MEMBERS} · 清空
+                </button>
+              ) : (
+                <span className="text-[11px] text-warm-gray/25">拖入</span>
+              )}
             </div>
-            {isRoundTableReady ? (
-              <button onClick={handleRoundTableStart}
-                className="w-full mt-3 py-1.5 rounded-lg text-xs font-medium text-white transition-all hover:opacity-90 active:scale-95 pulse-soft"
-                style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}>
-                开始讨论
-              </button>
-            ) : roundTableMembers.length > 0 ? (
-              <button onClick={() => setRoundTableMembers([])}
-                className="w-full mt-3 py-1.5 rounded-lg text-xs text-warm-gray hover:text-warm-black transition-colors">
-                清空
-              </button>
-            ) : null}
           </div>
         )}
       </div>

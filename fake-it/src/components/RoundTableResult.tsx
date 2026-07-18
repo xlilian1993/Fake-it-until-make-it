@@ -57,7 +57,7 @@ export function RoundTableResult({ perspectives, members, isLoading, loadingText
               </button>
 
               <h2 className="font-heading text-lg text-warm-black mb-1">圆桌讨论</h2>
-              <p className="text-sm text-warm-gray mb-5">角色们依次发言，后一位回应前一位</p>
+              <p className="text-sm text-warm-gray/40 mb-5">前排吃瓜 ing 🍉</p>
 
               {/* 已展示的角色 */}
               {perspectives.map((p, idx) => {
