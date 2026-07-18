@@ -81,26 +81,29 @@ export function StoryModal({ character, onClose, onChat }: StoryModalProps) {
                 </div>
                 <div>
                   <h2 className="font-heading text-xl text-warm-black leading-tight">
-                    {character.story.intro.name}
+                    {character.story?.intro?.name || character.name}
                   </h2>
                   <p className="text-sm text-warm-gray mt-0.5">
-                    {character.story.intro.source}
+                    {character.story?.intro?.source || ''}
                   </p>
                 </div>
               </div>
 
               {/* 一句话标签 */}
-              <div
-                className="inline-block px-3 py-1 rounded-full text-sm mb-5"
-                style={{
-                  background: `${DOMAIN_COLORS[character.domain] || '#B8A9FF'}33`,
-                  color: '#2D2A26',
-                }}
-              >
-                {character.story.intro.tagline}
-              </div>
+              {character.story?.intro?.tagline && (
+                <div
+                  className="inline-block px-3 py-1 rounded-full text-sm mb-5"
+                  style={{
+                    background: `${DOMAIN_COLORS[character.domain] || '#B8A9FF'}33`,
+                    color: '#2D2A26',
+                  }}
+                >
+                  {character.story.intro.tagline}
+                </div>
+              )}
 
               {/* 多面人生 */}
+              {character.story?.facets && character.story.facets.length > 0 && (
               <div className="mb-5">
                 <h3 className="font-heading text-sm text-warm-gray mb-3 tracking-wide">
                   多面人生
@@ -127,6 +130,7 @@ export function StoryModal({ character, onClose, onChat }: StoryModalProps) {
                   ))}
                 </div>
               </div>
+              )}
 
               {/* 和 Ta 聊 按钮 */}
               <button

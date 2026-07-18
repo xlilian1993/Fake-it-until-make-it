@@ -8,7 +8,8 @@ import { BottomBar } from '@/components/BottomBar';
 import { RoundTableResult } from '@/components/RoundTableResult';
 import { MysteryBubble } from '@/components/MysteryBubble';
 import { LoadingRoller } from '@/components/LoadingRoller';
-import type { Bubble, RecommendItem } from '@/types';
+import { ShareImageModal } from '@/components/ShareImageModal';
+import type { Bubble, RecommendItem, CBTResponse } from '@/types';
 import { matchScoreToSize, SIZE_PX, DOMAIN_COLORS } from '@/lib/colors';
 import { getAvatar, isImageAvatar } from '@/lib/avatars';
 import { getDailyMystery, toRecommendItem } from '@/lib/mystery';
@@ -109,6 +110,8 @@ export default function Page() {
   const [roundTablePerspectives, setRoundTablePerspectives] = useState<{ characterName: string; viewpoint: string; story: string }[]>([]);
   const [roundTableLoading, setRoundTableLoading] = useState(false);
   const [roundTableLoadingText, setRoundTableLoadingText] = useState('');
+  const [completedCBTSessions, setCompletedCBTSessions] = useState<Record<string, { question: string; modules: CBTResponse['modules'] }>>({});
+  const [shareTarget, setShareTarget] = useState<{ characterName: string; question: string; modules: CBTResponse['modules'] } | null>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
   const [, setDragState] = useState<{
@@ -290,16 +293,68 @@ export default function Page() {
     }
   }
 
+  function handleCBTComplete(data: CBTResponse) {
+    setCompletedCBTSessions(prev => ({
+      ...prev,
+      [data.characterName]: { question: data.question, modules: data.modules },
+    }));
+  }
+
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
   }
 
   const isRoundTableReady = roundTableMembers.length >= MAX_ROUNDTABLE_MEMBERS;
 
+  const isEmpty = bubbles.length === 0 && !isLoading;
+
   return (
-    <div className="flex flex-col h-full">
+    <div className={`flex flex-col h-full ${isEmpty ? 'justify-end' : ''}`}>
+      {/* 空态提示 */}
+      {isEmpty && !error && (
+        <div className="flex-1 relative overflow-hidden">
+          {/* 静态装饰头像 */}
+          {[
+            { src: '/fake-it/avatars/zhenhuan.png', top: '5%', left: '8%', size: 88, opacity: 0.16 },
+            { src: '/fake-it/avatars/jobs.png', top: '16%', right: '6%', size: 76, opacity: 0.13 },
+            { src: '/fake-it/avatars/miyazaki.png', top: '40%', left: '4%', size: 72, opacity: 0.12 },
+            { src: '/fake-it/avatars/beethoven.png', top: '35%', right: '8%', size: 84, opacity: 0.14 },
+            { src: '/fake-it/avatars/zhuangzi.png', top: '58%', left: '18%', size: 72, opacity: 0.11 },
+            { src: '/fake-it/avatars/curie.png', top: '52%', right: '4%', size: 64, opacity: 0.13 },
+            { src: '/fake-it/avatars/lindaiyu.png', top: '70%', left: '4%', size: 76, opacity: 0.10 },
+            { src: '/fake-it/avatars/musk.png', top: '8%', left: '48%', size: 68, opacity: 0.12 },
+          ].map((a, i) => (
+            <img
+              key={i}
+              src={a.src}
+              alt=""
+              style={{
+                position: 'absolute',
+                top: a.top,
+                left: a.left,
+                right: a.right,
+                width: a.size,
+                height: a.size,
+                borderRadius: '50%',
+                opacity: a.opacity,
+                filter: 'grayscale(30%)',
+                pointerEvents: 'none',
+              }}
+            />
+          ))}
+          <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
+            <p className="text-lg font-heading font-semibold text-warm-black/70 mb-2">
+              Fake It Until You Make It
+            </p>
+            <p className="text-sm text-warm-gray/50">
+              把心事放进来的这一刻，就已经有人懂了
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* 输入框 */}
-      <div className="px-4 pt-3 pb-1 flex-shrink-0">
+      <div className={`px-5 flex-shrink-0 ${isEmpty ? 'pb-8' : 'pt-3 pb-1'}`}>
         <div className="flex gap-2 items-end">
           <textarea value={question} onChange={(e) => {
               setQuestion(e.target.value);
@@ -307,7 +362,7 @@ export default function Page() {
               el.style.height = 'auto';
               el.style.height = Math.min(el.scrollHeight, 120) + 'px';
             }}
-            onKeyDown={handleKeyDown} placeholder="你遇到了什么问题？" maxLength={200} rows={1}
+            onKeyDown={handleKeyDown} placeholder="今天想聊点什么" maxLength={200} rows={1}
             className="input-warm flex-1 px-4 py-3 text-sm text-warm-black placeholder:text-warm-gray/50 rounded-2xl resize-none"
             style={{ minHeight: '48px', maxHeight: '120px' }}
             aria-label="输入你的问题" />
@@ -326,7 +381,8 @@ export default function Page() {
         )}
       </div>
 
-      {/* 气泡区域 + 圆桌（同一个 relative 容器） */}
+      {/* 气泡区域 + 圆桌 */}
+      {(isLoading || bubbles.length > 0) && (
       <div className="relative flex-1" style={{ minHeight: '400px' }}>
         {/* 气泡 */}
         {isLoading && (
@@ -393,6 +449,22 @@ export default function Page() {
                       <span style={{ fontSize: '1em' }}>{b.character.avatar}</span>
                     )}
                   </div>
+
+                  {/* 分享按钮 — CBT 完成后显示 */}
+                  {completedCBTSessions[b.character.name] && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const session = completedCBTSessions[b.character.name];
+                        setShareTarget({ characterName: b.character.name, ...session });
+                      }}
+                      className="mt-1 flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] text-white font-medium shadow-md active:scale-90 transition-transform"
+                      style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}
+                    >
+                      <span style={{ fontSize: '10px' }}>📤</span>
+                      分享
+                    </button>
+                  )}
                 </div>
               );
             })}
@@ -490,6 +562,7 @@ export default function Page() {
           </div>
         )}
       </div>
+      )}
 
       <BottomBar />
 
@@ -499,13 +572,19 @@ export default function Page() {
         {selectedCharacterName && (
           <CBTDialog characterName={selectedCharacterName} question={question}
             characterDomain={cbtDomain} onClose={() => setSelectedCharacterName(null)}
-            onError={(msg) => setError(msg)} />
+            onError={(msg) => setError(msg)}
+            onComplete={handleCBTComplete}
+            onShare={(data) => {
+              setSelectedCharacterName(null);
+              setShareTarget({ characterName: data.characterName, question: data.question, modules: data.modules });
+            }} />
         )}
       </AnimatePresence>
 
       <RoundTableResult
         perspectives={roundTablePerspectives} members={roundTableMembers}
         isLoading={roundTableLoading} loadingText={roundTableLoadingText}
+        question={question}
         onClose={() => { setRoundTablePerspectives([]); }}
         onSelect={(name) => {
           setRoundTablePerspectives([]);
@@ -516,6 +595,19 @@ export default function Page() {
           setSelectedCharacterName(name);
         }}
       />
+
+      <AnimatePresence>
+        {shareTarget && (
+          <ShareImageModal
+            question={shareTarget.question}
+            characterName={shareTarget.characterName}
+            modules={shareTarget.modules}
+            onClose={() => setShareTarget(null)}
+            autoDownload
+          />
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { CBTModuleView } from './CBTModule';
 import { getAvatar, isImageAvatar } from '@/lib/avatars';
 import { DOMAIN_COLORS } from '@/lib/colors';
 import type { CBTResponse, CBTModule } from '@/types';
+import { downloadCBTShare } from '@/lib/shareUtils';
 
 interface CBTDialogProps {
   characterName: string;
@@ -13,6 +14,8 @@ interface CBTDialogProps {
   characterDomain: string;
   onClose: () => void;
   onError?: (msg: string) => void;
+  onComplete?: (data: CBTResponse) => void;
+  onShare?: (data: CBTResponse) => void;
 }
 
 function Avatar({ characterName, domainColor, size = 36 }: { characterName: string; domainColor: string; size?: number }) {
@@ -69,7 +72,7 @@ function PastBubble({ module, domainColor, characterName }: { module: CBTModule;
   );
 }
 
-export function CBTDialog({ characterName, question, characterDomain, onClose, onError }: CBTDialogProps) {
+export function CBTDialog({ characterName, question, characterDomain, onClose, onError, onComplete, onShare }: CBTDialogProps) {
   const [cbtData, setCbtData] = useState<CBTResponse | null>(null);
   const [currentModuleIdx, setCurrentModuleIdx] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,6 +121,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
       }, 1000);
     } else {
       setAllComplete(true);
+      if (cbtData) onComplete?.(cbtData);
     }
   };
 
@@ -213,12 +217,21 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                 <p className="text-sm text-warm-gray mb-3">
                   对话已结束 · Fake it until you make it 🌟
                 </p>
-                <button
-                  onClick={onClose}
-                  className="px-6 py-2 rounded-xl bg-warm-cream text-warm-black text-sm font-medium hover:bg-warm-border transition-colors"
-                >
-                  回到气泡
-                </button>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={onClose}
+                    className="px-6 py-2 rounded-xl bg-warm-cream text-warm-black text-sm font-medium hover:bg-warm-border transition-colors"
+                  >
+                    回到气泡
+                  </button>
+                  <button
+                    onClick={() => { if (cbtData) downloadCBTShare(question, characterName, cbtData.modules); }}
+                    className="px-6 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 transition-colors"
+                    style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}
+                  >
+                    📤 分享长图
+                  </button>
+                </div>
               </motion.div>
             )}
           </>

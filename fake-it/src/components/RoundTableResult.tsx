@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getAvatar, isImageAvatar } from '@/lib/avatars';
 import { DOMAIN_COLORS } from '@/lib/colors';
 import type { RecommendItem } from '@/types';
+import { downloadRoundTableShare } from '@/lib/shareUtils';
 
 interface Perspective {
   characterName: string;
@@ -18,9 +19,10 @@ interface RoundTableResultProps {
   loadingText: string;
   onClose: () => void;
   onSelect: (name: string) => void;
+  question: string;
 }
 
-export function RoundTableResult({ perspectives, members, isLoading, loadingText, onClose, onSelect }: RoundTableResultProps) {
+export function RoundTableResult({ perspectives, members, isLoading, loadingText, onClose, onSelect, question }: RoundTableResultProps) {
   const isOpen = perspectives.length > 0 || isLoading;
 
   return (
@@ -122,7 +124,7 @@ export function RoundTableResult({ perspectives, members, isLoading, loadingText
                 </motion.div>
               )}
 
-              {/* 全部完成：选 1 人深入 */}
+              {/* 全部完成：选 1 人深入 + 分享 */}
               {perspectives.length === 3 && !isLoading && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -131,19 +133,26 @@ export function RoundTableResult({ perspectives, members, isLoading, loadingText
                   className="pt-2"
                 >
                   <p className="text-sm text-warm-gray text-center mb-3">想和谁深入聊聊？</p>
-                  <div className="flex gap-2 justify-center">
+                  <div className="flex gap-2 justify-center flex-wrap">
                     {perspectives.map((p, i) => (
                       <button
                         key={i}
                         onClick={() => onSelect(p.characterName)}
                         className="px-4 py-2 rounded-xl text-xs font-medium text-white transition-all hover:opacity-90 active:scale-95"
-                        style={{
-                          background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))',
-                        }}
+                        style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}
                       >
                         {p.characterName}
                       </button>
                     ))}
+                  </div>
+                  <div className="text-center mt-4">
+                    <button
+                      onClick={() => downloadRoundTableShare(question, perspectives)}
+                      className="px-5 py-2 rounded-xl text-xs font-medium text-white transition-all hover:opacity-90 active:scale-95"
+                      style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}
+                    >
+                      📤 分享长图
+                    </button>
                   </div>
                 </motion.div>
               )}

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Fake It — 借角色的眼睛看世界',
+  title: 'Fake It Until You Make It',
   description: '每天遇到跨越时空的角色，让 Ta 以自己的故事和 CBT 思维框架，帮你打破情绪内耗、找到可执行的行动方向。',
 };
 
