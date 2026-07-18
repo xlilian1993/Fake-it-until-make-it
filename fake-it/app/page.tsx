@@ -15,19 +15,31 @@ const CANVAS_WIDTH = 375;
 const CANVAS_HEIGHT = 500;
 const MAX_ROUNDTABLE_MEMBERS = 3;
 
-function randomPosition(size: number) {
-  const padding = size / 2 + 12;
+// Grid zones to spread bubbles apart
+const ZONES = [
+  { cx: 0.22, cy: 0.18 },
+  { cx: 0.72, cy: 0.22 },
+  { cx: 0.18, cy: 0.55 },
+  { cx: 0.60, cy: 0.60 },
+  { cx: 0.42, cy: 0.38 },
+];
+
+function spreadPosition(size: number, index: number) {
+  const zone = ZONES[index % ZONES.length];
+  const jitter = 35;
   return {
-    x: padding + Math.random() * (CANVAS_WIDTH - 2 * padding),
-    y: padding + Math.random() * (CANVAS_HEIGHT - 2 * padding),
+    x: Math.max(size / 2 + 8, Math.min(CANVAS_WIDTH - size / 2 - 8,
+      zone.cx * CANVAS_WIDTH + (Math.random() - 0.5) * jitter * 2)),
+    y: Math.max(size / 2 + 8, Math.min(CANVAS_HEIGHT - size / 2 - 8,
+      zone.cy * CANVAS_HEIGHT + (Math.random() - 0.5) * jitter * 2)),
   };
 }
 
 function buildBubbles(items: RecommendItem[]): Bubble[] {
-  return items.map((item): Bubble => {
+  return items.map((item, i): Bubble => {
     const size = matchScoreToSize(item.matchScore);
     const sizePx = SIZE_PX[size];
-    const base = size === 'large' ? 18 : size === 'medium' ? 14 : 10;
+    const base = size === 'large' ? 20 : size === 'medium' ? 16 : 12;
     return {
       character: {
         id: item.name.toLowerCase().replace(/\s+/g, '-'),
@@ -39,9 +51,13 @@ function buildBubbles(items: RecommendItem[]): Bubble[] {
       },
       size,
       color: DOMAIN_COLORS[item.domain] || '#FFD49E',
-      position: randomPosition(sizePx),
-      animationDuration: base + Math.random() * 4,
-      animationDelay: -Math.random() * 10,
+      position: spreadPosition(sizePx, i),
+      animationDuration: base + Math.random() * 8,
+      animationDelay: -Math.random() * 12,
+      ox: `${(Math.random() * 50 - 25).toFixed(1)}px`,
+      oy: `${(Math.random() * -60 - 10).toFixed(1)}px`,
+      mx: `${(Math.random() * 30 - 15).toFixed(1)}px`,
+      my: `${(Math.random() * -50).toFixed(1)}px`,
       isMystery: false,
       isRevealed: false,
       hasGlow: false,
@@ -68,12 +84,15 @@ export default function Page() {
 
   const [dragState, setDragState] = useState<{
     isDragging: boolean; dragId: string | null;
-    position: { x: number; y: number } | null; isOverDropZone: boolean;
-  }>({ isDragging: false, dragId: null, position: null, isOverDropZone: false });
+    isOverDropZone: boolean;
+  }>({ isDragging: false, dragId: null, isOverDropZone: false });
 
   const startPos = useRef<{ x: number; y: number } | null>(null);
   const hasMoved = useRef(false);
   const dragIdRef = useRef<string | null>(null);
+  const ghostRef = useRef<HTMLDivElement>(null);
+  const bubblesRef = useRef<Bubble[]>([]);
+  bubblesRef.current = bubbles;
 
   const handlePointerDown = useCallback((e: React.PointerEvent, id: string) => {
     startPos.current = { x: e.clientX, y: e.clientY };
@@ -87,15 +106,40 @@ export default function Page() {
       if (dx > 5 || dy > 5) hasMoved.current = true;
 
       if (hasMoved.current) {
+        // 首次移动时初始化幽灵外观
+        let ghostSize = 0;
+        const b = bubblesRef.current.find(bb => bb.character.id === dragIdRef.current);
+        if (b) ghostSize = b.size === 'large' ? 80 : b.size === 'medium' ? 60 : 44;
+        if (ghostRef.current && ghostRef.current.style.display === 'none') {
+          if (b) {
+            ghostRef.current.style.width = `${ghostSize}px`;
+            ghostRef.current.style.height = `${ghostSize}px`;
+            ghostRef.current.style.background = `radial-gradient(circle at 35% 30%, ${b.color}, ${b.color}dd)`;
+            ghostRef.current.style.fontSize = b.size === 'large' ? '32px' : b.size === 'medium' ? '24px' : '18px';
+            ghostRef.current.style.border = '2px solid rgba(255,255,255,0.5)';
+            ghostRef.current.innerHTML = isImageAvatar(b.character.avatar)
+              ? `<img src="${b.character.avatar}" alt="${b.character.name}" style="width:100%;height:100%;border-radius:50%;object-fit:cover" />`
+              : b.character.avatar;
+          }
+        }
         let overDrop = false;
         if (dropZoneRef.current) {
           const rect = dropZoneRef.current.getBoundingClientRect();
           overDrop = ev.clientX >= rect.left && ev.clientX <= rect.right
             && ev.clientY >= rect.top && ev.clientY <= rect.bottom;
         }
+        // 直接操作 DOM 更新幽灵位置，避免 React 渲染延迟
+        if (ghostRef.current) {
+          ghostRef.current.style.left = `${ev.clientX - ghostSize / 2}px`;
+          ghostRef.current.style.top = `${ev.clientY - ghostSize / 2}px`;
+          ghostRef.current.style.display = '';
+          ghostRef.current.style.borderColor = overDrop ? 'var(--color-philosopher)' : 'rgba(255,255,255,0.5)';
+          ghostRef.current.style.boxShadow = overDrop
+            ? '0 0 20px rgba(184,169,255,0.5), 0 4px 12px rgba(0,0,0,0.2)'
+            : '0 4px 12px rgba(0,0,0,0.2)';
+        }
         setDragState({
-          isDragging: true, dragId: dragIdRef.current,
-          position: { x: ev.clientX, y: ev.clientY }, isOverDropZone: overDrop,
+          isDragging: true, dragId: dragIdRef.current, isOverDropZone: overDrop,
         });
       }
     };
@@ -117,7 +161,8 @@ export default function Page() {
           }
         }
       }
-      setDragState({ isDragging: false, dragId: null, position: null, isOverDropZone: false });
+      setDragState({ isDragging: false, dragId: null, isOverDropZone: false });
+      if (ghostRef.current) ghostRef.current.style.display = 'none';
       startPos.current = null;
       hasMoved.current = false;
       dragIdRef.current = null;
@@ -213,20 +258,31 @@ export default function Page() {
   return (
     <div className="flex flex-col h-full">
       {/* 输入框 */}
-      <div className="px-4 py-2 flex-shrink-0">
-        <div className="flex gap-2">
-          <input type="text" value={question} onChange={(e) => setQuestion(e.target.value)}
-            onKeyDown={handleKeyDown} placeholder="你遇到了什么问题？" maxLength={200}
-            className="input-warm flex-1 px-4 py-2.5 text-sm text-warm-black placeholder:text-warm-gray/60"
+      <div className="px-4 pt-3 pb-1 flex-shrink-0">
+        <div className="flex gap-2 items-end">
+          <textarea value={question} onChange={(e) => {
+              setQuestion(e.target.value);
+              const el = e.target;
+              el.style.height = 'auto';
+              el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+            }}
+            onKeyDown={handleKeyDown} placeholder="你遇到了什么问题？" maxLength={200} rows={1}
+            className="input-warm flex-1 px-4 py-3 text-sm text-warm-black placeholder:text-warm-gray/50 rounded-2xl resize-none"
+            style={{ minHeight: '48px', maxHeight: '120px' }}
             aria-label="输入你的问题" />
           <button onClick={handleSubmit} disabled={!question.trim() || isLoading}
-            className="px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}
+            className="px-5 py-3 rounded-2xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))', minHeight: '48px' }}
             aria-label="提交问题">
             {isLoading ? '...' : '→'}
           </button>
         </div>
-        {error && <p className="text-xs text-red-500 mt-2 px-1">{error}</p>}
+        {error && <p className="text-xs text-red-500 mt-1.5 px-1">{error}</p>}
+        {!isLoading && bubbles.length > 0 && (
+          <p className="text-xs text-warm-gray/50 text-center mt-1.5">
+            点击气泡聊一聊，或拖拽气泡到圆桌开始群聊
+          </p>
+        )}
       </div>
 
       {/* 气泡区域 + 圆桌（同一个 relative 容器） */}
@@ -246,7 +302,7 @@ export default function Page() {
 
         {!isLoading && bubbles.length > 0 && (
           <div className="absolute inset-0">
-            {bubbles.map((b) => {
+            {bubbles.map((b, i) => {
               const sz = b.size === 'large' ? 80 : b.size === 'medium' ? 60 : 44;
               const isInRoundTable = roundTableMembers.some(m => m.name === b.character.name);
               return (
@@ -261,7 +317,12 @@ export default function Page() {
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.4)',
                     opacity: isInRoundTable ? 0.4 : 1,
                     touchAction: 'none',
-                  }}
+                    '--bubble-index': i,
+                    '--ox': b.ox,
+                    '--oy': b.oy,
+                    '--mx': b.mx,
+                    '--my': b.my,
+                  } as React.CSSProperties}
                   onPointerDown={(e) => handlePointerDown(e, b.character.id)}
                   onClick={() => { if (!isInRoundTable) handleBubbleClick(b.character.name); }}
                 >
@@ -275,33 +336,12 @@ export default function Page() {
               );
             })}
 
-            {/* 拖拽幽灵 */}
-            {dragState.isDragging && dragState.dragId && dragState.position && (() => {
-              const b = bubbles.find(bb => bb.character.id === dragState.dragId);
-              if (!b) return null;
-              const sz = b.size === 'large' ? 80 : b.size === 'medium' ? 60 : 44;
-              return (
-                <div className="fixed pointer-events-none z-50 flex items-center justify-center rounded-full"
-                  style={{
-                    width: sz, height: sz,
-                    left: dragState.position.x - sz / 2, top: dragState.position.y - sz / 2,
-                    background: `radial-gradient(circle at 35% 30%, ${b.color}, ${b.color}dd)`,
-                    fontSize: b.size === 'large' ? 32 : b.size === 'medium' ? 24 : 18,
-                    border: dragState.isOverDropZone ? '3px solid var(--color-philosopher)' : '2px solid rgba(255,255,255,0.5)',
-                    boxShadow: dragState.isOverDropZone
-                      ? '0 0 20px rgba(184,169,255,0.5), 0 4px 12px rgba(0,0,0,0.2)'
-                      : '0 4px 12px rgba(0,0,0,0.2)',
-                    opacity: 0.9, transform: 'scale(1.1)',
-                  }}>
-                  {isImageAvatar(b.character.avatar) ? (
-                    <img src={b.character.avatar} alt={b.character.name}
-                      style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                  ) : (
-                    <span style={{ fontSize: '1em' }}>{b.character.avatar}</span>
-                  )}
-                </div>
-              );
-            })()}
+            {/* 拖拽幽灵 — DOM 由 ref 直接控制，不依赖 React 渲染 */}
+            <div
+              ref={ghostRef}
+              className="fixed pointer-events-none z-50 rounded-full overflow-hidden flex items-center justify-center"
+              style={{ display: 'none', opacity: 0.9, transform: 'scale(1.1)' }}
+            />
           </div>
         )}
 

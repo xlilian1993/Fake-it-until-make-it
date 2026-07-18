@@ -63,24 +63,24 @@ html, body {
 /* ============ 气泡漂浮动画 ============ */
 @keyframes float-bubble {
   0% {
-    transform: translate(0px, 0px) scale(1);
+    transform: translate(0, 0) scale(1);
   }
   25% {
-    transform: translate(15px, -25px) scale(1.02);
+    transform: translate(var(--ox, 15px), var(--oy, -25px)) scale(1.02);
   }
   50% {
-    transform: translate(-10px, -40px) scale(0.98);
+    transform: translate(var(--mx, -10px), var(--my, -40px)) scale(0.98);
   }
   75% {
-    transform: translate(8px, -15px) scale(1.01);
+    transform: translate(calc(var(--ox, 15px) * 0.6), calc(var(--oy, -25px) * 0.5)) scale(1.01);
   }
   100% {
-    transform: translate(0px, 0px) scale(1);
+    transform: translate(0, 0) scale(1);
   }
 }
 
 .bubble-float {
-  animation: float-bubble var(--bubble-duration, 15s) ease-in-out infinite;
+  animation: float-bubble var(--bubble-duration, 16s) ease-in-out infinite;
   animation-delay: var(--bubble-delay, 0s);
   will-change: transform;
 }

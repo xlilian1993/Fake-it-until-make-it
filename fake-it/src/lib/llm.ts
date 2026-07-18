@@ -72,10 +72,6 @@ export function extractJSON(text: string): string {
 
   // 4. 修复常见 JSON 问题
   cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1'); // 尾随逗号
-  cleaned = cleaned.replace(/\u201C/g, '"').replace(/\u201D/g, '"'); // 中文双引号
-  cleaned = cleaned.replace(/\u2018/g, "'").replace(/\u2019/g, "'"); // 中文单引号
-  // 修复未转义的控制字符和无效转义
-  cleaned = cleaned.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
 
   return cleaned.trim();
 }

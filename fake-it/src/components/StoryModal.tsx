@@ -48,7 +48,7 @@ export function StoryModal({ character, onClose, onChat }: StoryModalProps) {
             <div
               className="h-1.5 w-full"
               style={{
-                background: `linear-gradient(90deg, ${DOMAIN_COLORS[character.domain]}, ${DOMAIN_COLORS[character.domain]}88)`,
+                background: `linear-gradient(90deg, ${DOMAIN_COLORS[character.domain] || '#B8A9FF'}, ${(DOMAIN_COLORS[character.domain] || '#B8A9FF')}88)`,
               }}
             />
 
@@ -67,7 +67,7 @@ export function StoryModal({ character, onClose, onChat }: StoryModalProps) {
                 <div
                   className="w-14 h-14 rounded-full flex items-center justify-center text-2xl"
                   style={{
-                    background: `radial-gradient(circle at 35% 30%, ${DOMAIN_COLORS[character.domain]} 0%, ${DOMAIN_COLORS[character.domain]}cc 100%)`,
+                    background: `radial-gradient(circle at 35% 30%, ${DOMAIN_COLORS[character.domain] || '#B8A9FF'} 0%, ${(DOMAIN_COLORS[character.domain] || '#B8A9FF')}cc 100%)`,
                     border: '2px solid rgba(255,255,255,0.6)',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                   }}
@@ -93,7 +93,7 @@ export function StoryModal({ character, onClose, onChat }: StoryModalProps) {
               <div
                 className="inline-block px-3 py-1 rounded-full text-sm mb-5"
                 style={{
-                  background: `${DOMAIN_COLORS[character.domain]}33`,
+                  background: `${DOMAIN_COLORS[character.domain] || '#B8A9FF'}33`,
                   color: '#2D2A26',
                 }}
               >
@@ -114,7 +114,7 @@ export function StoryModal({ character, onClose, onChat }: StoryModalProps) {
                       transition={{ delay: 0.2 + idx * 0.15, duration: 0.4 }}
                       className="border-l-2 pl-3"
                       style={{
-                        borderColor: DOMAIN_COLORS[character.domain],
+                        borderColor: DOMAIN_COLORS[character.domain] || '#B8A9FF',
                       }}
                     >
                       <p className="text-sm font-medium text-warm-black mb-1">
@@ -133,8 +133,8 @@ export function StoryModal({ character, onClose, onChat }: StoryModalProps) {
                 onClick={() => onChat(character.name)}
                 className="w-full py-3 rounded-xl font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
                 style={{
-                  background: `linear-gradient(135deg, ${DOMAIN_COLORS[character.domain]}, ${DOMAIN_COLORS[character.domain]}cc)`,
-                  boxShadow: `0 4px 12px ${DOMAIN_COLORS[character.domain]}55`,
+                  background: `linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))`,
+                  boxShadow: '0 4px 12px rgba(184,169,255,0.33)',
                 }}
               >
                 💬 和 Ta 聊

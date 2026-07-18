@@ -34,6 +34,7 @@ export interface Bubble {
   position: { x: number; y: number };
   animationDuration: number;
   animationDelay: number;
+  ox: string; oy: string; mx: string; my: string;
   isMystery: boolean;
   isRevealed: boolean;
   hasGlow: boolean;
