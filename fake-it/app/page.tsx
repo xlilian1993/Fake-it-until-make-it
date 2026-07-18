@@ -7,7 +7,7 @@ import { CBTDialog } from '@/components/CBTDialog';
 import { BottomBar } from '@/components/BottomBar';
 import { RoundTable } from '@/components/RoundTable';
 import { RoundTableResult } from '@/components/RoundTableResult';
-import type { Bubble, RecommendItem, RoundTableResponse } from '@/types';
+import type { Bubble, RecommendItem } from '@/types';
 import { matchScoreToSize, SIZE_PX, DOMAIN_COLORS } from '@/lib/colors';
 import { getAvatar, isImageAvatar } from '@/lib/avatars';
 
@@ -61,8 +61,9 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
 
   const [roundTableMembers, setRoundTableMembers] = useState<RecommendItem[]>([]);
-  const [roundTableData, setRoundTableData] = useState<RoundTableResponse | null>(null);
+  const [roundTablePerspectives, setRoundTablePerspectives] = useState<{ characterName: string; viewpoint: string; story: string }[]>([]);
   const [roundTableLoading, setRoundTableLoading] = useState(false);
+  const [roundTableLoadingText, setRoundTableLoadingText] = useState('');
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
   const [dragState, setDragState] = useState<{
@@ -133,7 +134,7 @@ export default function Page() {
   function handleSubmit() {
     if (!question.trim()) return;
     setError(null); setIsLoading(true); setLoadingText('正在为你寻找角色...');
-    setRoundTableMembers([]); setRoundTableData(null);
+    setRoundTableMembers([]); setRoundTablePerspectives([]);
 
     fetch('/api/recommend', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -157,16 +158,50 @@ export default function Page() {
     setStoryCharacter(null); setSelectedCharacterName(name);
   }
 
-  function handleRoundTableStart() {
+  async function handleRoundTableStart() {
     if (roundTableMembers.length < MAX_ROUNDTABLE_MEMBERS) return;
-    setRoundTableLoading(true); setRoundTableData(null);
-    fetch('/api/roundtable', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ characterNames: roundTableMembers.map(m => m.name), question }),
-    })
-      .then(async (res) => { if (!res.ok) { const e = await res.json(); throw new Error(e.error || '讨论失败'); } return res.json(); })
-      .then((data: RoundTableResponse) => { setRoundTableData(data); setRoundTableLoading(false); })
-      .catch((e) => { setError(e instanceof Error ? e.message : '讨论失败'); setRoundTableLoading(false); });
+    setRoundTableLoading(true); setRoundTablePerspectives([]);
+    const names = roundTableMembers.map(m => m.name);
+
+    try {
+      // 第一人（无 previous）
+      setRoundTableLoadingText(`${names[0]} 正在发言...`);
+      const r1 = await fetch('/api/roundtable', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ characterName: names[0], question }),
+      });
+      if (!r1.ok) { const e = await r1.json(); throw new Error(e.error); }
+      const d1 = await r1.json();
+      const p1 = d1.perspective;
+      setRoundTablePerspectives([p1]);
+
+      // 第二人（基于第一人）
+      setRoundTableLoadingText(`${names[1]} 正在回应 ${names[0]}...`);
+      const r2 = await fetch('/api/roundtable', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ characterName: names[1], question, previous: { name: p1.characterName, viewpoint: p1.viewpoint, story: p1.story } }),
+      });
+      if (!r2.ok) { const e = await r2.json(); throw new Error(e.error); }
+      const d2 = await r2.json();
+      const p2 = d2.perspective;
+      setRoundTablePerspectives([p1, p2]);
+
+      // 第三人（基于第二人）
+      setRoundTableLoadingText(`${names[2]} 正在回应 ${names[1]}...`);
+      const r3 = await fetch('/api/roundtable', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ characterName: names[2], question, previous: { name: p2.characterName, viewpoint: p2.viewpoint, story: p2.story } }),
+      });
+      if (!r3.ok) { const e = await r3.json(); throw new Error(e.error); }
+      const d3 = await r3.json();
+      const p3 = d3.perspective;
+      setRoundTablePerspectives([p1, p2, p3]);
+
+      setRoundTableLoading(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '讨论失败');
+      setRoundTableLoading(false);
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -348,10 +383,11 @@ export default function Page() {
       </AnimatePresence>
 
       <RoundTableResult
-        data={roundTableData} members={roundTableMembers} isLoading={roundTableLoading}
-        onClose={() => { setRoundTableData(null); }}
+        perspectives={roundTablePerspectives} members={roundTableMembers}
+        isLoading={roundTableLoading} loadingText={roundTableLoadingText}
+        onClose={() => { setRoundTablePerspectives([]); }}
         onSelect={(name) => {
-          setRoundTableData(null);
+          setRoundTablePerspectives([]);
           if (recommendCache) {
             const item = recommendCache.find(c => c.name === name);
             if (item) setCbtDomain(item.domain);

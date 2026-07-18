@@ -1,51 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callLLM, extractJSON } from '@/lib/llm';
-import { buildRoundTablePrompt } from '@/lib/prompts';
-import type { RoundTableResponse } from '@/types';
 
 export const runtime = 'nodejs';
-export const maxDuration = 30;
+export const maxDuration = 60;
+
+function buildPrompt(
+  characterName: string,
+  question: string,
+  previous?: { name: string; viewpoint: string; story: string }
+): string {
+  if (!previous) {
+    return `你是 ${characterName}。正在参加一场圆桌讨论，你是第一个发言的人。
+
+用户问题："${question}"
+
+请用你的第一人称，给出你的核心立场和一段相关经历。返回 JSON（不要其他文字）：
+
+{
+  "characterName": "${characterName}",
+  "viewpoint": "一句话表达你对这个问题的核心立场",
+  "story": "用你的口吻讲述一个相关经历，2-3句话"
+}`;
+  }
+
+  return `你是 ${characterName}。正在参加一场圆桌讨论。
+
+用户问题："${question}"
+
+上一位发言的是 ${previous.name}，Ta 的观点是：
+"${previous.viewpoint}"
+Ta 分享的经历是：
+"${previous.story}"
+
+现在轮到你了。请先针对 ${previous.name} 的发言做简短回应（一句），再给出你自己的核心立场和相关经历。返回 JSON（不要其他文字）：
+
+{
+  "characterName": "${characterName}",
+  "viewpoint": "先回应上一位（一句），再给出你的核心立场（一句）",
+  "story": "用你的口吻讲述一个相关经历，2-3句话"
+}`;
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { characterNames, question } = await request.json();
+    const { characterName, question, previous } = await request.json();
 
-    if (!characterNames || !Array.isArray(characterNames) || characterNames.length !== 3) {
+    if (!characterName || !question) {
       return NextResponse.json(
-        { error: '需要 3 个角色名' },
+        { error: 'characterName 和 question 字段必填' },
         { status: 400 }
       );
     }
 
-    if (!question) {
-      return NextResponse.json(
-        { error: 'question 字段必填' },
-        { status: 400 }
-      );
-    }
+    const prompt = buildPrompt(characterName, question, previous || undefined);
+    const raw = await callLLM(prompt);
+    const json = extractJSON(raw);
+    const perspective = JSON.parse(json);
 
-    const prompt = buildRoundTablePrompt(characterNames, question);
-    const rawResponse = await callLLM(prompt);
-    const jsonStr = extractJSON(rawResponse);
-
-    let parsed: RoundTableResponse;
-    try {
-      parsed = JSON.parse(jsonStr) as RoundTableResponse;
-    } catch {
-      return NextResponse.json(
-        { error: 'LLM 返回格式错误', raw: rawResponse.slice(0, 500) },
-        { status: 502 }
-      );
-    }
-
-    if (!parsed.perspectives || !Array.isArray(parsed.perspectives)) {
-      return NextResponse.json(
-        { error: 'LLM 返回结构不完整', raw: rawResponse.slice(0, 500) },
-        { status: 502 }
-      );
-    }
-
-    return NextResponse.json(parsed);
+    return NextResponse.json({ perspective });
   } catch (error) {
     const message = error instanceof Error ? error.message : '未知错误';
     return NextResponse.json({ error: message }, { status: 500 });
