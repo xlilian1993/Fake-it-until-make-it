@@ -197,6 +197,38 @@ html, body {
   }
 }
 
+/* ============ 神秘气泡翻转动画 ============ */
+.mystery-card {
+  perspective: 600px;
+  cursor: pointer;
+}
+
+.mystery-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.mystery-card.mystery-flipping .mystery-card-inner,
+.mystery-card.mystery-revealed .mystery-card-inner {
+  transform: rotateY(180deg);
+}
+
+.mystery-card-front,
+.mystery-card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.mystery-card-back {
+  transform: rotateY(180deg);
+}
+
 /* 减少动画偏好 */
 @media (prefers-reduced-motion: reduce) {
   .bubble-float,

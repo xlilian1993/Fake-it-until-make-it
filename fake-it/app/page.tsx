@@ -6,9 +6,11 @@ import { StoryModal } from '@/components/StoryModal';
 import { CBTDialog } from '@/components/CBTDialog';
 import { BottomBar } from '@/components/BottomBar';
 import { RoundTableResult } from '@/components/RoundTableResult';
+import { MysteryBubble } from '@/components/MysteryBubble';
 import type { Bubble, RecommendItem } from '@/types';
 import { matchScoreToSize, SIZE_PX, DOMAIN_COLORS } from '@/lib/colors';
 import { getAvatar, isImageAvatar } from '@/lib/avatars';
+import { getDailyMystery, toRecommendItem } from '@/lib/mystery';
 
 const CANVAS_WIDTH = 375;
 const CANVAS_HEIGHT = 500;
@@ -62,6 +64,33 @@ function buildBubbles(items: RecommendItem[]): Bubble[] {
       hasGlow: false,
     };
   });
+}
+
+function buildMysteryBubble(): Bubble {
+  const mystery = getDailyMystery();
+  const id = mystery.name.toLowerCase().replace(/\s+/g, '-');
+  return {
+    character: {
+      id,
+      name: mystery.name,
+      avatar: getAvatar(mystery.name),
+      domain: mystery.domain,
+      source: mystery.source,
+      matchScore: 88,
+    },
+    size: 'large',
+    color: '#FFD700',
+    position: { x: 60, y: 360 },
+    animationDuration: 18,
+    animationDelay: -3,
+    ox: '15px',
+    oy: '-30px',
+    mx: '-10px',
+    my: '-40px',
+    isMystery: true,
+    isRevealed: false,
+    hasGlow: true,
+  };
 }
 
 export default function Page() {
@@ -184,7 +213,20 @@ export default function Page() {
       body: JSON.stringify({ question }),
     })
       .then(async (res) => { if (!res.ok) { const e = await res.json(); throw new Error(e.error || '推荐失败'); } return res.json(); })
-      .then((data) => { setRecommendCache(data.characters); setBubbles(buildBubbles(data.characters)); setIsLoading(false); })
+      .then((data) => {
+          const chars: RecommendItem[] = data.characters;
+          const mysteryItem = toRecommendItem(getDailyMystery());
+          const alreadyExists = chars.some((c) => c.name === mysteryItem.name);
+          let allChars = chars;
+          const bubs = buildBubbles(chars);
+          if (!alreadyExists) {
+            allChars = [...chars, mysteryItem];
+            bubs.push(buildMysteryBubble());
+          }
+          setRecommendCache(allChars);
+          setBubbles(bubs);
+          setIsLoading(false);
+        })
       .catch((e) => { setError(e instanceof Error ? e.message : '获取角色失败'); setIsLoading(false); });
   }
 
@@ -301,6 +343,18 @@ export default function Page() {
         {!isLoading && bubbles.length > 0 && (
           <div className="absolute inset-0">
             {bubbles.map((b, i) => {
+              // 神秘气泡用独立组件渲染
+              if (b.isMystery) {
+                return (
+                  <MysteryBubble
+                    key={b.character.id}
+                    bubble={b}
+                    onClick={handleBubbleClick}
+                    onPointerDown={handlePointerDown}
+                  />
+                );
+              }
+
               const sz = b.size === 'large' ? 80 : b.size === 'medium' ? 60 : 44;
               const isInRoundTable = roundTableMembers.some(m => m.name === b.character.name);
               return (
