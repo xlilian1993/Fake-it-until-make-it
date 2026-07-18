@@ -81,7 +81,7 @@ export default function Page() {
   const [roundTableLoadingText, setRoundTableLoadingText] = useState('');
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  const [dragState, setDragState] = useState<{
+  const [, setDragState] = useState<{
     isDragging: boolean; dragId: string | null; isOverDropZone: boolean;
   }>({ isDragging: false, dragId: null, isOverDropZone: false });
 
@@ -305,15 +305,9 @@ export default function Page() {
               const isInRoundTable = roundTableMembers.some(m => m.name === b.character.name);
               return (
                 <div key={b.character.id}
-                  className="bubble-float absolute flex items-center justify-center rounded-full cursor-pointer overflow-hidden select-none"
+                  className="bubble-float absolute flex flex-col items-center select-none"
                   style={{
-                    width: sz, height: sz,
                     left: b.position.x - sz / 2, top: b.position.y - sz / 2,
-                    background: `radial-gradient(circle at 35% 30%, ${b.color}, ${b.color}dd)`,
-                    fontSize: b.size === 'large' ? 32 : b.size === 'medium' ? 24 : 18,
-                    border: '2px solid rgba(255,255,255,0.5)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.4)',
-                    opacity: isInRoundTable ? 0.4 : 1,
                     touchAction: 'none',
                     '--bubble-index': i,
                     '--ox': b.ox,
@@ -321,15 +315,35 @@ export default function Page() {
                     '--mx': b.mx,
                     '--my': b.my,
                   } as React.CSSProperties}
-                  onPointerDown={(e) => handlePointerDown(e, b.character.id)}
-                  onClick={() => { if (!isInRoundTable) handleBubbleClick(b.character.name); }}
                 >
-                  {isImageAvatar(b.character.avatar) ? (
-                    <img src={b.character.avatar} alt={b.character.name}
-                      style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                  ) : (
-                    <span style={{ fontSize: '1em' }}>{b.character.avatar}</span>
-                  )}
+                  {/* 名字标签 */}
+                  <span
+                    className="text-[10px] font-medium text-warm-black/60 whitespace-nowrap mb-0.5"
+                    style={{ opacity: isInRoundTable ? 0.4 : 0.75 }}
+                  >
+                    {b.character.name}
+                  </span>
+
+                  <div
+                    className="rounded-full cursor-pointer overflow-hidden flex items-center justify-center"
+                    style={{
+                      width: sz, height: sz,
+                      background: `radial-gradient(circle at 35% 30%, ${b.color}, ${b.color}dd)`,
+                      fontSize: b.size === 'large' ? 32 : b.size === 'medium' ? 24 : 18,
+                      border: '2px solid rgba(255,255,255,0.5)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.4)',
+                      opacity: isInRoundTable ? 0.4 : 1,
+                    }}
+                    onPointerDown={(e) => handlePointerDown(e, b.character.id)}
+                    onClick={() => { if (!isInRoundTable) handleBubbleClick(b.character.name); }}
+                  >
+                    {isImageAvatar(b.character.avatar) ? (
+                      <img src={b.character.avatar} alt={b.character.name}
+                        style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '1em' }}>{b.character.avatar}</span>
+                    )}
+                  </div>
                 </div>
               );
             })}
