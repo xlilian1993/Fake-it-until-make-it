@@ -17,13 +17,14 @@ const MAX_ROUNDTABLE_MEMBERS = 3;
 const CARD_W = 300;
 const CARD_H = 210;
 
-// Grid zones: 普通气泡四角散开
+// Grid zones: 普通气泡分散到5个区域
 const CORNER_ZONES = [
-  { cx: 0.12, cy: 0.06 },
-  { cx: 0.88, cy: 0.10 },
-  { cx: 0.12, cy: 0.90 },
-  { cx: 0.88, cy: 0.88 },
-];
+{ cx: 0.12, cy: 0.08 },
+{ cx: 0.88, cy: 0.08 },
+{ cx: 0.12, cy: 0.88 },
+{ cx: 0.88, cy: 0.88 },
+  { cx: 0.50, cy: 0.92 },
+  ];
 
 function spreadPosition(size: number, placed: { x: number; y: number; r: number }[], isMystery: boolean): { x: number; y: number } {
   // 神秘气泡居中，普通气泡按顺序分配到四角
@@ -369,7 +370,16 @@ export default function Page() {
   const isEmpty = bubbles.length === 0 && !isLoading;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      {/* 非空态全屏背景图 */}
+      {!isEmpty && (
+        <div className="absolute inset-0 z-0" style={{
+          backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_PATH || ''}/avatars-bg.png)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+        }} />
+      )}
       {/* 空态 — 顶部诗意文字 + 输入框在屏幕下3/4处 */}
       {isEmpty && !error && (
         <div className="flex-1 relative" style={{
@@ -452,14 +462,14 @@ export default function Page() {
 
       {/* 提示 / 输入框 — 非空态才有 */}
       {bubbles.length > 0 && !isLoading ? (
-        <div className="px-5 pt-4 pb-1 flex-shrink-0 flex items-center gap-3">
+        <div className="px-5 pt-4 pb-1 flex-shrink-0 flex items-center gap-3 relative z-10 bg-gradient-to-b from-black/30 to-transparent">
           <button onClick={handleGoHome}
-            className="w-7 h-7 rounded-full bg-white/70 flex items-center justify-center shadow-sm flex-shrink-0 hover:bg-white transition-colors"
+            className="w-7 h-7 rounded-full bg-white/80 flex items-center justify-center shadow-sm flex-shrink-0 hover:bg-white transition-colors"
             aria-label="返回主页"
           >
-            <span className="text-warm-gray/60 text-xs">←</span>
+            <span className="text-warm-black/80 text-xs font-medium">←</span>
           </button>
-          <p className="text-sm text-warm-gray/50 text-center flex-1">
+          <p className="text-sm text-warm-black/80 text-center flex-1 font-medium">
             {roundTableActivated ? '点击气泡跟TA聊聊，或者拖进圆桌群聊' : '点击气泡跟TA聊聊'}
           </p>
           <div className="w-7 flex-shrink-0" />
@@ -571,17 +581,9 @@ export default function Page() {
 
         {!isLoading && bubbles.length > 0 && (
           <>
-            {/* 全屏背景图层 */}
-            <div className="absolute inset-0" style={{
-              backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_PATH || ''}/avatars-bg.png)`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center top',
-              backgroundRepeat: 'no-repeat',
-              zIndex: -10,
-            }} />
             {/* 白色卡片层 + 泡泡活动范围 */}
-            <div className="absolute rounded-2xl bg-white shadow-md overflow-hidden"
-              style={{ border: '1px solid rgba(0,0,0,0.04)', zIndex: 0, top: '0%', left: '6%', right: '6%', bottom: '44%' }}>
+            <div className="absolute rounded-2xl shadow-md overflow-hidden"
+              style={{ backgroundColor: 'rgba(255, 248, 243, 0.6)', border: '1.5px dashed rgba(139,134,128,0.5)', top: '0%', left: '6%', right: '6%', bottom: '44%' }}>
             {/* 泡泡 */}
             <div className="absolute" style={{ top: '20%', left: 0, right: 0, bottom: 0 }}>
             {bubbles.map((b) => {
@@ -752,8 +754,8 @@ export default function Page() {
 
         {/* 圆桌未激活时 — 显示引用（卡片下方） */}
         {bubbles.length > 0 && !isLoading && !roundTableActivated && (
-          <p className="absolute text-sm text-warm-gray/45 italic leading-relaxed tracking-wide text-center w-full"
-            style={{ top: '67%' }}>
+          <p className="absolute text-sm text-warm-black/60 italic leading-relaxed tracking-wide text-center w-full"
+            style={{ top: '67%', textShadow: '0 1px 3px rgba(255,255,255,0.5)' }}>
             &ldquo;你走在自己的夜里，而有人曾提灯走过同一段路。&rdquo;
           </p>
         )}

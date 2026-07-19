@@ -146,6 +146,8 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
     }
   }, [cbtData, currentModuleIdx, onComplete]);
 
+  const showContinueHint = modulePhase === 'done' && currentModuleIdx < (cbtData?.modules?.length ?? 0) - 1;
+
   const handleBubbleClick = useCallback(() => {
     if (isLoading || modulePhase === 'typing' || clickLockRef.current) return;
     clickLockRef.current = true;
@@ -278,6 +280,13 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                   startTyping={modulePhase === 'typing'}
                   onTypingDone={handleTypingDone}
                 />
+                {showContinueHint && (
+                  <div className="flex justify-center py-2 pointer-events-none">
+                    <span className="continue-hint-blink text-xs text-warm-gray/60 tracking-wider">
+                      点击屏幕继续
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -326,6 +335,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                 </div>
               </motion.div>
             )}
+
           </>
         )}
       </div>

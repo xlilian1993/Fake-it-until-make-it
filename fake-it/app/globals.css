@@ -253,6 +253,16 @@ html, body {
   animation: module-enter 0.6s ease-out;
 }
 
+/* ============ 点击继续提示闪烁 ============ */
+@keyframes continue-blink {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.continue-hint-blink {
+  animation: continue-blink 1.2s ease-in-out infinite;
+}
+
 /* ============ 手机容器 ============ */
 .phone-container {
   width: 375px;
