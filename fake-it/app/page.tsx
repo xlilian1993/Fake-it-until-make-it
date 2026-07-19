@@ -433,7 +433,7 @@ export default function Page() {
             <span className="text-warm-gray/60 text-xs">←</span>
           </button>
           <p className="text-sm text-warm-gray/50 text-center flex-1">
-            点击气泡跟TA聊聊，或者拖进圆桌群聊
+            {roundTableActivated ? '点击气泡跟TA聊聊，或者拖进圆桌群聊' : '点击气泡跟TA聊聊'}
           </p>
           <div className="w-7 flex-shrink-0" />
         </div>
