@@ -388,8 +388,26 @@ export default function Page() {
           backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
         }}>
-          <div className="px-7 pt-8 text-center">
-            <p className="text-[13px] text-warm-gray/40 tracking-wide mb-5">欢迎来到这里。</p>
+          {/* 标题 + 引用 — 最上方，上方留白 20vh */}
+          <div className="flex-shrink-0 px-5 text-center" style={{ paddingTop: '10vh', paddingBottom: '5vh' }}>
+            <h1
+              className="font-heading text-xl font-bold tracking-widest mb-3"
+              style={{
+                background: 'linear-gradient(135deg, #b8a088 0%, #8b7355 50%, #6b5b4f 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              Fake It Until You Make It
+            </h1>
+            <p className="text-[13px] text-warm-gray/40 italic tracking-wider">
+              &ldquo;总有一个灵魂，懂你的此刻&rdquo;
+            </p>
+          </div>
+
+          <div className="px-7 text-center">
+            <p className="text-xs text-warm-gray/35 leading-relaxed tracking-wide mb-5">欢迎来到这里。</p>
             <p className="text-xs text-warm-gray/35 leading-relaxed tracking-wide mb-5">
               此刻，轻抚过你的风，落在你心头的雨<br />
               千百年前，也曾穿过他人的灵魂，打湿过他人的窗。
@@ -418,7 +436,7 @@ export default function Page() {
           </div>
 
           {/* 输入框 */}
-          <div className="flex-shrink-0 px-5">
+          <div className="flex-shrink-0 px-5 pb-8">
             <div className="flex gap-2 items-end">
               <textarea value={question} onChange={(e) => {
                   setQuestion(e.target.value);
@@ -438,24 +456,6 @@ export default function Page() {
               </button>
             </div>
             {error && <p className="text-xs text-red-500 mt-1.5 px-1">{error}</p>}
-          </div>
-
-          {/* 标题 + 引用 — 输入框下方 10vh */}
-          <div className="flex-shrink-0 px-5 pb-8 text-center" style={{ marginTop: '10vh' }}>
-            <h1
-              className="font-heading text-xl font-bold tracking-widest mb-3"
-              style={{
-                background: 'linear-gradient(135deg, #b8a088 0%, #8b7355 50%, #6b5b4f 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
-              Fake It Until You Make It
-            </h1>
-            <p className="text-[13px] text-warm-gray/40 italic tracking-wider">
-              &ldquo;总有一个灵魂，懂你的此刻&rdquo;
-            </p>
           </div>
         </div>
       )}
