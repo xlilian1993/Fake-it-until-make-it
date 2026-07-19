@@ -76,7 +76,7 @@ export function CBTModuleView({ module, characterName, avatarColor, startTyping,
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff' }}>
+        <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff', borderLeft: `3px solid ${avatarColor}` }}>
           <p className="text-sm text-warm-black leading-relaxed whitespace-pre-wrap">
             {displayText}
             {!typingDone && (

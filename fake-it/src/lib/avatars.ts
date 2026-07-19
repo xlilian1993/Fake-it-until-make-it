@@ -32,10 +32,27 @@ const AVATAR_MAP: Record<string, string> = {
   '诸葛亮': '/avatars/zhugeliang.png',
   '梵高': '/avatars/vangogh.png',
   '王菲': '/avatars/wangfei.png',
+  '张伟丽': '/avatars/张伟丽.png',
+  '阿甘': '/avatars/阿甘.png',
+  '安迪': '/avatars/安迪.png',
+  '路飞': '/avatars/路飞.png',
+  '邓布利多': '/avatars/邓布利多.png',
+  '伍尔夫': '/avatars/伍尔夫.png',
+  '孔子': '/avatars/孔子.png',
+  '曹操': '/avatars/曹操.png',
+  '司马懿': '/avatars/司马懿.png',
+  '王尔德': '/avatars/王尔德.png',
+  '笛卡尔': '/avatars/笛卡尔.png',
+  '乔治·奥威尔': '/avatars/乔治·奥威尔.png',
+  '刘姥姥': '/avatars/刘姥姥.png',
+  '楚门': '/avatars/楚门.png',
+  '里昂': '/avatars/里昂.png',
+  '玛蒂尔达': '/avatars/玛蒂尔达.png',
+  '王熙凤': '/avatars/王熙凤.png',
 };
 
 export function getAvatar(name: string): string {
-  const path = AVATAR_MAP[name];
+  const path = AVATAR_MAP[name] || NEW_AVATAR_MAP[name];
   return path ? `${BASE}${path}` : '🫧';
 }
 
@@ -58,7 +75,7 @@ const NEW_AVATAR_MAP: Record<string, string> = {
   '鲍勃·迪伦': '/avatars/鲍勃·迪伦.png',
   '费曼': '/avatars/费曼.png',
   '特斯拉': '/avatars/特斯拉.png',
-  '张伟丽': '/avatars/张伟丽.png',
+  // 张伟丽 → 已移至旧池 AVATAR_MAP
   '马拉拉': '/avatars/马拉拉.png',
   '王小云': '/avatars/王小云.png',
   '韦慧晓': '/avatars/韦慧晓.png',
@@ -108,23 +125,11 @@ const NEW_AVATAR_MAP: Record<string, string> = {
   '陶华碧': '/avatars/陶华碧.png',
   '李子柒': '/avatars/李子柒.png',
   '华罗庚': '/avatars/华罗庚.png',
-  '阿甘': '/avatars/阿甘.png',
-  '安迪': '/avatars/安迪.png',
-  '路飞': '/avatars/路飞.png',
+  // 阿甘 → 已移至旧池 AVATAR_MAP
+  // 安迪 → 已移至旧池 AVATAR_MAP
+  // 路飞 → 已移至旧池 AVATAR_MAP
   '图灵': '/avatars/图灵.png',
-  '孔子': '/avatars/孔子.png',
-  '曹操': '/avatars/曹操.png',
-  '司马懿': '/avatars/司马懿.png',
-  '王尔德': '/avatars/王尔德.png',
-  '笛卡尔': '/avatars/笛卡尔.png',
-  '刘姥姥': '/avatars/刘姥姥.png',
-  '楚门': '/avatars/楚门.png',
-  '里昂': '/avatars/里昂.png',
-  '玛蒂尔达': '/avatars/玛蒂尔达.png',
-  '伍尔夫': '/avatars/伍尔夫.png',
-  '邓布利多': '/avatars/邓布利多.png',
-  '王熙凤': '/avatars/王熙凤.png',
-  '乔治·奥威尔': '/avatars/乔治·奥威尔.png',
+  // 邓布利多 → 已移至旧池 AVATAR_MAP
   '周星驰': '/avatars/周星驰.png',
 };
 

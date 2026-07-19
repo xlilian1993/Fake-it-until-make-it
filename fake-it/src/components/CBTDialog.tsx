@@ -42,7 +42,7 @@ function PastBubble({ module, domainColor, characterName }: { module: CBTModule;
     <div className="flex gap-3 mb-5">
       <Avatar characterName={characterName} domainColor={domainColor} />
       <div className="flex-1 min-w-0 opacity-65">
-        <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff' }}>
+        <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff', borderLeft: `3px solid ${domainColor}66` }}>
           <p className="text-sm text-warm-black leading-relaxed whitespace-pre-wrap">
             {module.content}
           </p>
@@ -75,13 +75,13 @@ function splitModuleTitle(title: string): { scene: string; content: string } {
   return { scene: title.slice(0, idx), content: title.slice(idx + 1) };
 }
 
-function StepPill({ content, state }: { content: string; state: 'past' | 'current' | 'future' }) {
+function StepPill({ content, state, color }: { content: string; state: 'past' | 'current' | 'future'; color: string }) {
   return (
     <div
       className="rounded-full px-2 py-0.5 text-center text-[10px] font-medium leading-tight transition-all duration-300"
       style={{
-        background: state === 'past' ? 'rgba(0,0,0,0.08)' : state === 'current' ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.05)',
-        color: state === 'past' ? 'rgba(0,0,0,0.5)' : state === 'current' ? '#fff' : 'rgba(0,0,0,0.25)',
+        background: state === 'past' ? `${color}28` : state === 'current' ? color : `${color}14`,
+        color: state === 'current' ? '#3e3228' : 'rgba(0,0,0,0.4)',
         transform: state === 'current' ? 'scale(1.05)' : 'scale(1)',
       }}
     >
@@ -96,7 +96,9 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
   const [modulePhase, setModulePhase] = useState<'waiting' | 'typing' | 'done'>('waiting');
   const [isLoading, setIsLoading] = useState(true);
   const [allComplete, setAllComplete] = useState(false);
+  const [showContinueHint, setShowContinueHint] = useState(false);
   const clickLockRef = useRef(false);
+  const currentModuleIdxRef = useRef(0);
 
   const domainColor = (DOMAIN_COLORS as Record<string, string>)[characterDomain] || '#FFD49E';
 
@@ -120,6 +122,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
           setIsLoading(false);
           setCurrentModuleIdx(0);
           setModulePhase('typing');
+          setShowContinueHint(false);
         }
       } catch (e) {
         if (!cancelled) {
@@ -136,17 +139,21 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
 
   const handleTypingDone = useCallback(() => {
     setModulePhase('done');
-    // 最后一步自动弹出完成页
-    if (currentModuleIdx >= (cbtData?.modules?.length ?? 0) - 1) {
+    const idx = currentModuleIdxRef.current;
+    const lastIdx = (cbtData?.modules?.length ?? 0) - 1;
+    if (idx < lastIdx) {
+      setShowContinueHint(true);
+    }
+    if (idx >= lastIdx) {
       const data = cbtData;
       setTimeout(() => {
         setAllComplete(true);
         if (data) onComplete?.(data);
       }, 800);
     }
-  }, [cbtData, currentModuleIdx, onComplete]);
+  }, [cbtData, onComplete]);
 
-  const showContinueHint = modulePhase === 'done' && currentModuleIdx < (cbtData?.modules?.length ?? 0) - 1;
+  currentModuleIdxRef.current = currentModuleIdx;
 
   const handleBubbleClick = useCallback(() => {
     if (isLoading || modulePhase === 'typing' || clickLockRef.current) return;
@@ -155,6 +162,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
     if (cbtData && currentModuleIdx < cbtData.modules.length - 1) {
       setCurrentModuleIdx(prev => prev + 1);
       setModulePhase('typing');
+      setShowContinueHint(false);
     } else {
       setAllComplete(true);
       if (cbtData) onComplete?.(cbtData);
@@ -228,7 +236,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                             →
                           </span>
                         )}
-                        <StepPill content={content} state={state} />
+                        <StepPill content={content} state={state} color={domainColor} />
                       </div>
                     </div>
                   );
@@ -304,7 +312,8 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                 <div className="flex gap-3 justify-center">
                   <button
                     onClick={(e) => { e.stopPropagation(); onClose(); }}
-                    className="px-6 py-2 rounded-xl bg-warm-cream text-warm-black text-sm font-medium hover:bg-warm-border transition-colors"
+                    className="px-6 py-2 rounded-xl text-sm font-medium transition-colors"
+                    style={{ background: 'rgba(255,158,199,0.15)', color: '#E87890' }}
                   >
                     回到气泡
                   </button>
@@ -314,7 +323,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                       if (cbtData) downloadCBTShare(question, characterName, cbtData.modules);
                     }}
                     className="px-6 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 transition-colors"
-                    style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}
+                    style={{ background: 'linear-gradient(135deg, var(--color-rebel), var(--color-leader))' }}
                   >
                     📤 分享长图
                   </button>

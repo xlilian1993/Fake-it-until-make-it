@@ -450,7 +450,7 @@ export default function Page() {
                 aria-label="输入你的问题" />
               <button onClick={handleSubmit} disabled={isLoading}
                 className="px-5 py-3 rounded-2xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))', minHeight: '48px' }}
+                style={{ background: 'linear-gradient(135deg, var(--color-rebel), var(--color-leader))', minHeight: '48px' }}
                 aria-label="提交问题">
                 {isLoading ? '...' : '→'}
               </button>
@@ -462,17 +462,25 @@ export default function Page() {
 
       {/* 提示 / 输入框 — 非空态才有 */}
       {bubbles.length > 0 && !isLoading ? (
-        <div className="px-5 pt-4 pb-1 flex-shrink-0 flex items-center gap-3 relative z-10 bg-gradient-to-b from-black/30 to-transparent">
+        <div className="px-5 pt-4 pb-1 flex-shrink-0 flex flex-col items-center gap-1 relative z-10 bg-gradient-to-b from-black/30 to-transparent">
+          <div className="flex items-center gap-3 w-full">
           <button onClick={handleGoHome}
             className="w-7 h-7 rounded-full bg-white/80 flex items-center justify-center shadow-sm flex-shrink-0 hover:bg-white transition-colors"
             aria-label="返回主页"
           >
             <span className="text-warm-black/80 text-xs font-medium">←</span>
           </button>
-          <p className="text-sm text-warm-black/80 text-center flex-1 font-medium">
+          <div className="flex-1" />
+          <div className="w-7 flex-shrink-0" />
+          </div>
+          {question && (
+            <p className="text-xs text-warm-gray/50 tracking-wide text-center w-full">
+              你说：&ldquo;<span className="italic text-warm-gray/60">{question}</span>&rdquo;
+            </p>
+          )}
+          <p className="text-sm text-warm-black/80 text-center font-medium" style={{ marginTop: '5vh' }}>
             {roundTableActivated ? '点击气泡跟TA聊聊，或者拖进圆桌群聊' : '点击气泡跟TA聊聊'}
           </p>
-          <div className="w-7 flex-shrink-0" />
         </div>
       ) : !isEmpty && !isLoading ? (
         <div className="px-5 pt-3 pb-1 flex-shrink-0">
@@ -489,7 +497,7 @@ export default function Page() {
               aria-label="输入你的问题" />
             <button onClick={handleSubmit} disabled={isLoading}
               className="px-5 py-3 rounded-2xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))', minHeight: '48px' }}
+              style={{ background: 'linear-gradient(135deg, var(--color-rebel), var(--color-leader))', minHeight: '48px' }}
               aria-label="提交问题">
               {isLoading ? '...' : '→'}
             </button>
@@ -528,11 +536,11 @@ export default function Page() {
               </p>
 
               <div className="flex flex-col items-center w-full" style={{ maxWidth: '260px', marginTop: '10vh' }}>
-              <div className="w-full rounded-full overflow-hidden" style={{ height: '4px', background: 'rgba(0,0,0,0.08)' }}>
+              <div className="w-full rounded-full overflow-hidden" style={{ height: '4px', background: 'rgba(255,158,199,0.15)' }}>
                 <div className="h-full rounded-full transition-all duration-300 ease-out"
                   style={{
                     width: `${loadingProgress}%`,
-                    background: 'linear-gradient(90deg, #b8a088, #8b7355)',
+                    background: 'linear-gradient(90deg, var(--color-rebel), var(--color-leader))',
                   }} />
               </div>
               <div className="flex items-center gap-3 mt-3">
@@ -541,7 +549,7 @@ export default function Page() {
                   <button
                     onClick={handleGoSee}
                     className="px-5 py-1.5 rounded-full text-xs font-semibold shadow-sm active:scale-95 transition-all hover:shadow-md"
-                    style={{ background: 'rgba(180,160,140,0.15)', color: '#8b7355', border: '1px solid rgba(139,115,85,0.2)' }}
+                    style={{ background: 'rgba(255,158,199,0.15)', color: '#E87890', border: '1px solid rgba(255,158,199,0.2)' }}
                   >
                     去看看
                   </button>
@@ -731,7 +739,7 @@ export default function Page() {
               {isRoundTableReady ? (
                 <button onClick={handleRoundTableStart}
                   className="px-3 py-1.5 rounded-full text-[10px] font-semibold text-white shadow-lg transition-all hover:opacity-90 active:scale-95 pulse-soft"
-                  style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}>
+                  style={{ background: 'linear-gradient(135deg, var(--color-rebel), var(--color-leader))' }}>
                   开始讨论
                 </button>
               ) : (

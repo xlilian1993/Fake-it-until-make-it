@@ -139,8 +139,8 @@ export function StoryModal({ character, onClose, onChat, onAddToRoundTable }: St
                   onClick={() => onChat(character.name)}
                   className="flex-1 py-3 rounded-xl font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
                   style={{
-                    background: `linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))`,
-                    boxShadow: '0 4px 12px rgba(184,169,255,0.33)',
+                    background: `linear-gradient(135deg, var(--color-rebel), var(--color-leader))`,
+                    boxShadow: '0 4px 12px rgba(255,158,199,0.33)',
                   }}
                 >
                   💬 和 Ta 聊
@@ -149,9 +149,9 @@ export function StoryModal({ character, onClose, onChat, onAddToRoundTable }: St
                   onClick={() => onAddToRoundTable(character.name)}
                   className="flex-1 py-3 rounded-xl font-medium transition-all hover:opacity-90 active:scale-[0.98]"
                   style={{
-                    background: 'rgba(184,169,255,0.12)',
-                    color: 'var(--color-philosopher)',
-                    border: '1px solid rgba(184,169,255,0.25)',
+                    background: 'rgba(255,158,199,0.15)',
+                    color: '#E87890',
+                    border: '1px solid rgba(255,158,199,0.3)',
                   }}
                 >
                   👥 拉Ta群聊

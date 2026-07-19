@@ -112,8 +112,8 @@ html, body {
 
 .input-warm:focus {
   outline: none;
-  border-color: var(--color-philosopher);
-  box-shadow: 0 0 0 3px rgba(184, 169, 255, 0.15);
+  border-color: var(--color-rebel);
+  box-shadow: 0 0 0 3px rgba(255, 158, 199, 0.15);
 }
 
 /* ============ 神秘卡金色外框动画 ============ */
