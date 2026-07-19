@@ -1,18 +1,15 @@
-import { getCharacterNames } from './characters';
-
 export interface MysteryEntry {
   name: string;
 }
 
-function dateSeed(): number {
-  const d = new Date();
-  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+export function getMysteryAvatar(): string {
+  return `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/mystery-face.png`;
 }
 
-/** 根据日期从完整角色池中固定选出一个今日限定角色 */
+const MYSTERY_POOL = ['泰勒斯威夫特', '哈兰德', '甄嬛'];
+
+/** 从三人池中随机选出一个今日限定角色 */
 export function getDailyMystery(): MysteryEntry {
-  const allNames = getCharacterNames();
-  const seed = dateSeed();
-  const idx = seed % allNames.length;
-  return { name: allNames[idx] };
+  const idx = Math.floor(Math.random() * MYSTERY_POOL.length);
+  return { name: MYSTERY_POOL[idx] };
 }

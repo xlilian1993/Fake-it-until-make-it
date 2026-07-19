@@ -8,20 +8,33 @@ interface CBTModuleViewProps {
   module: CBTModule;
   characterName: string;
   avatarColor: string;
-  onComplete: () => void;
+  startTyping: boolean;
+  onTypingDone: () => void;
 }
 
-export function CBTModuleView({ module, characterName, avatarColor, onComplete }: CBTModuleViewProps) {
+export function CBTModuleView({ module, characterName, avatarColor, startTyping, onTypingDone }: CBTModuleViewProps) {
   const [displayText, setDisplayText] = useState('');
-  const [isComplete, setIsComplete] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingDone, setTypingDone] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startedRef = useRef(false);
 
   const av = getAvatar(characterName);
 
+  // 切换模块时重置状态
   useEffect(() => {
+    startedRef.current = false;
+    setIsTyping(false);
+    setTypingDone(false);
+    setDisplayText('');
+  }, [module]);
+
+  useEffect(() => {
+    if (!startTyping || startedRef.current) return;
+    startedRef.current = true;
+    setIsTyping(true);
     let index = 0;
     setDisplayText('');
-    setIsComplete(false);
 
     timerRef.current = setInterval(() => {
       if (index < module.content.length) {
@@ -29,20 +42,23 @@ export function CBTModuleView({ module, characterName, avatarColor, onComplete }
         index += 1;
       } else {
         if (timerRef.current) clearInterval(timerRef.current);
-        setIsComplete(true);
-        setTimeout(() => onComplete(), 800);
+        setTypingDone(true);
+        onTypingDone();
       }
-    }, 30);
+    }, 20);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [module]);
+  }, [startTyping]);
+
+  const showAction = module.index === 5 && typingDone && 'action' in module && module.action;
+
+  if (!startTyping && !isTyping) return null;
 
   return (
     <div className="module-enter flex gap-3 mb-5">
-      {/* Avatar */}
       <div
         className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 self-start"
         style={{
@@ -58,40 +74,29 @@ export function CBTModuleView({ module, characterName, avatarColor, onComplete }
         ) : av}
       </div>
 
-      {/* Bubble */}
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] text-warm-gray/40 mb-1 px-1">
-          {module.title}
-        </p>
-        <div
-          className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm"
-          style={{ background: '#fff' }}
-        >
+        <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff' }}>
           <p className="text-sm text-warm-black leading-relaxed whitespace-pre-wrap">
             {displayText}
-            {!isComplete && (
+            {!typingDone && (
               <span className="inline-block w-0.5 h-4 bg-warm-gray ml-0.5 pulse-soft align-middle" />
             )}
           </p>
         </div>
 
-        {/* 第五幕：行动卡 */}
-        {module.index === 5 && isComplete && 'action' in module && module.action && (
+        {showAction && (
           <div className="mt-2 space-y-2 fade-in-up">
-            <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm"
-              style={{ background: `${avatarColor}18` }}>
+            <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: `${avatarColor}18` }}>
               <p className="text-xs text-warm-gray mb-1">🎬 今天的排练</p>
-              <p className="text-sm text-warm-black">{module.action.firstStep}</p>
+              <p className="text-sm text-warm-black">{module.action!.firstStep}</p>
             </div>
-            <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm"
-              style={{ background: `${avatarColor}18` }}>
+            <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: `${avatarColor}18` }}>
               <p className="text-xs text-warm-gray mb-1">🎭 新台词</p>
-              <p className="text-sm text-warm-black">{module.action.emergencyScript}</p>
+              <p className="text-sm text-warm-black">{module.action!.emergencyScript}</p>
             </div>
-            <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm"
-              style={{ background: `${avatarColor}18` }}>
+            <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: `${avatarColor}18` }}>
               <p className="text-xs text-warm-gray mb-1">🪄 进阶剧本</p>
-              <p className="text-sm text-warm-black">{module.action.backupPlan}</p>
+              <p className="text-sm text-warm-black">{module.action!.backupPlan}</p>
             </div>
           </div>
         )}

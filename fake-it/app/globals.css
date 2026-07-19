@@ -211,6 +211,16 @@ html, body {
   80%  { transform: rotate(-10deg) scale(0.98); }
 }
 
+/* ============ 进度条动画 ============ */
+@keyframes progress-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.progress-bar-shimmer {
+  animation: progress-shimmer 1.5s ease-in-out infinite;
+}
+
 /* ============ 流式逐字输出 ============ */
 @keyframes fade-in-up {
   from {

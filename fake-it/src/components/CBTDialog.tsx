@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { CBTModuleView } from './CBTModule';
 import { getAvatar, isImageAvatar } from '@/lib/avatars';
@@ -42,9 +42,6 @@ function PastBubble({ module, domainColor, characterName }: { module: CBTModule;
     <div className="flex gap-3 mb-5">
       <Avatar characterName={characterName} domainColor={domainColor} />
       <div className="flex-1 min-w-0 opacity-65">
-        <p className="text-[11px] text-warm-gray/35 mb-1 px-1">
-          {module.title}
-        </p>
         <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff' }}>
           <p className="text-sm text-warm-black leading-relaxed whitespace-pre-wrap">
             {module.content}
@@ -71,9 +68,32 @@ function PastBubble({ module, domainColor, characterName }: { module: CBTModule;
   );
 }
 
+
+function splitModuleTitle(title: string): { scene: string; content: string } {
+  const idx = title.indexOf('：');
+  if (idx === -1) return { scene: title, content: '' };
+  return { scene: title.slice(0, idx), content: title.slice(idx + 1) };
+}
+
+function StepPill({ content, state }: { content: string; state: 'past' | 'current' | 'future' }) {
+  return (
+    <div
+      className="rounded-full px-2 py-0.5 text-center text-[10px] font-medium leading-tight transition-all duration-300"
+      style={{
+        background: state === 'past' ? 'rgba(0,0,0,0.08)' : state === 'current' ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.05)',
+        color: state === 'past' ? 'rgba(0,0,0,0.5)' : state === 'current' ? '#fff' : 'rgba(0,0,0,0.25)',
+        transform: state === 'current' ? 'scale(1.05)' : 'scale(1)',
+      }}
+    >
+      {content}
+    </div>
+  );
+}
+
 export function CBTDialog({ characterName, question, characterDomain, onClose, onError, onComplete }: CBTDialogProps) {
   const [cbtData, setCbtData] = useState<CBTResponse | null>(null);
   const [currentModuleIdx, setCurrentModuleIdx] = useState(0);
+  const [modulePhase, setModulePhase] = useState<'waiting' | 'typing' | 'done'>('waiting');
   const [isLoading, setIsLoading] = useState(true);
   const [allComplete, setAllComplete] = useState(false);
 
@@ -98,6 +118,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
           setCbtData(data);
           setIsLoading(false);
           setCurrentModuleIdx(0);
+          setModulePhase('typing');
         }
       } catch (e) {
         if (!cancelled) {
@@ -112,17 +133,28 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [characterName, question]);
 
-  const handleModuleComplete = () => {
-    if (!cbtData) return;
-    if (currentModuleIdx < cbtData.modules.length - 1) {
+  const handleTypingDone = useCallback(() => {
+    setModulePhase('done');
+    // 最后一步自动弹出完成页
+    if (cbtData && currentModuleIdx >= cbtData.modules.length - 1) {
       setTimeout(() => {
-        setCurrentModuleIdx(prev => prev + 1);
-      }, 1000);
+        setAllComplete(true);
+        if (cbtData) onComplete?.(cbtData);
+      }, 800);
+    }
+  }, [cbtData, currentModuleIdx, onComplete]);
+
+  const handleBubbleClick = useCallback(() => {
+    if (isLoading || modulePhase === 'typing') return;
+
+    if (cbtData && currentModuleIdx < cbtData.modules.length - 1) {
+      setCurrentModuleIdx(prev => prev + 1);
+      setModulePhase('typing');
     } else {
       setAllComplete(true);
       if (cbtData) onComplete?.(cbtData);
     }
-  };
+  }, [isLoading, modulePhase, currentModuleIdx, cbtData, onComplete]);
 
   return (
     <motion.div
@@ -153,39 +185,75 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
         <div className="w-8" />
       </div>
 
+      {/* 步骤指示器 */}
+      {!allComplete && (
+        <div className="flex-shrink-0 px-3 pt-2 pb-1">
+          <p className="text-center text-xs text-warm-gray/50 italic mb-1">
+            &ldquo;你此刻的心情，千百年前就有人想好了答案。&rdquo;
+          </p>
+          {isLoading ? null : cbtData ? (
+            <>
+              <div className="flex items-end justify-center gap-x-0.5">
+                {cbtData.modules.map((mod, i) => {
+                  let state: 'future' | 'current' | 'past';
+                  if (i < currentModuleIdx || (i === currentModuleIdx && modulePhase === 'done')) {
+                    state = 'past';
+                  } else if (i === currentModuleIdx) {
+                    state = 'current';
+                  } else {
+                    state = 'future';
+                  }
+                  const { scene, content } = splitModuleTitle(mod.title);
+                  return (
+                    <div key={i} className="flex flex-col items-center gap-y-0.5">
+                      <span
+                        className="text-[9px] leading-none transition-colors duration-300"
+                        style={{ color: state === 'current' ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.25)' }}
+                      >
+                        {scene}
+                      </span>
+                      <div className="flex items-center gap-x-0.5">
+                        {i > 0 && (
+                          <span
+                            className="text-[9px] transition-colors duration-300"
+                            style={{ color: state === 'past' ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.08)' }}
+                          >
+                            →
+                          </span>
+                        )}
+                        <StepPill content={content} state={state} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : null}
+        </div>
+      )}
+
       {/* 内容区 — 聊天流 */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4" onClick={handleBubbleClick}>
         {isLoading && (
           <div className="flex gap-3 mb-5">
-            <Avatar characterName={characterName} domainColor={domainColor} />
-            <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff' }}>
-              <p className="text-sm text-warm-gray pulse-soft">
-                正在为你改写剧本...
-              </p>
+            <div style={{ width: 36 }} />
+            <div className="flex-1">
+              <div className="rounded-full overflow-hidden" style={{ height: '3px', background: 'rgba(0,0,0,0.06)' }}>
+                <div
+                  className="h-full rounded-full progress-bar-shimmer"
+                  style={{
+                    width: '40%',
+                    background: `linear-gradient(90deg, transparent, ${domainColor}cc, transparent)`,
+                  }}
+                />
+              </div>
             </div>
           </div>
         )}
 
         {!isLoading && cbtData && (
           <>
-            {/* 开场白 — 始终在顶部 */}
-            <motion.div
-              className="flex gap-3 mb-5"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 0.65, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <Avatar characterName={characterName} domainColor={domainColor} />
-              <div className="flex-1 min-w-0">
-                <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff' }}>
-                  <p className="text-sm text-warm-black leading-relaxed">
-                    让我帮你改编你的人生剧本吧
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* 已完成模块（聊天气泡） */}
+            {/* 已完成模块 */}
             {cbtData.modules.slice(0, currentModuleIdx).map((module, idx) => (
               <PastBubble
                 key={idx}
@@ -195,14 +263,17 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
               />
             ))}
 
-            {/* 当前正在输出的模块 */}
+            {/* 当前模块 */}
             {currentModuleIdx < cbtData.modules.length && (
-              <CBTModuleView
-                module={cbtData.modules[currentModuleIdx]}
-                characterName={characterName}
-                avatarColor={domainColor}
-                onComplete={handleModuleComplete}
-              />
+              <div className="cursor-pointer">
+                <CBTModuleView
+                  module={cbtData.modules[currentModuleIdx]}
+                  characterName={characterName}
+                  avatarColor={domainColor}
+                  startTyping={modulePhase === 'typing'}
+                  onTypingDone={handleTypingDone}
+                />
+              </div>
             )}
 
             {/* 全部完成 */}
@@ -218,13 +289,16 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                 </p>
                 <div className="flex gap-3 justify-center">
                   <button
-                    onClick={onClose}
+                    onClick={(e) => { e.stopPropagation(); onClose(); }}
                     className="px-6 py-2 rounded-xl bg-warm-cream text-warm-black text-sm font-medium hover:bg-warm-border transition-colors"
                   >
                     回到气泡
                   </button>
                   <button
-                    onClick={() => { if (cbtData) downloadCBTShare(question, characterName, cbtData.modules); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (cbtData) downloadCBTShare(question, characterName, cbtData.modules);
+                    }}
                     className="px-6 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 transition-colors"
                     style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}
                   >

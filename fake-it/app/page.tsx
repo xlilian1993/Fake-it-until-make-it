@@ -344,13 +344,10 @@ export default function Page() {
               写下来吧，<br />
               让那些跨越时空的灵魂遇见你。
             </p>
-            <p className="text-[13px] text-warm-gray/40 italic tracking-wider">
-              &ldquo;总有一个灵魂，懂你的此刻&rdquo;
-            </p>
           </div>
 
-          {/* 空态输入框 — 定位在 ~75% 高度 */}
-          <div className="flex-shrink-0 px-5 pb-8" style={{ marginTop: '18vh' }}>
+          {/* 输入框 */}
+          <div className="flex-shrink-0 px-5">
             <div className="flex gap-2 items-end">
               <textarea value={question} onChange={(e) => {
                   setQuestion(e.target.value);
@@ -370,6 +367,24 @@ export default function Page() {
               </button>
             </div>
             {error && <p className="text-xs text-red-500 mt-1.5 px-1">{error}</p>}
+          </div>
+
+          {/* 标题 + 引用 — 输入框下方 10vh */}
+          <div className="flex-shrink-0 px-5 pb-8 text-center" style={{ marginTop: '10vh' }}>
+            <h1
+              className="font-heading text-xl font-bold tracking-widest mb-3"
+              style={{
+                background: 'linear-gradient(135deg, #b8a088 0%, #8b7355 50%, #6b5b4f 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              Fake It Until You Make It
+            </h1>
+            <p className="text-[13px] text-warm-gray/40 italic tracking-wider">
+              &ldquo;总有一个灵魂，懂你的此刻&rdquo;
+            </p>
           </div>
         </div>
       )}
