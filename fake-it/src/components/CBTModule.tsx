@@ -54,9 +54,9 @@ export function CBTModuleView({ module, characterName, avatarColor, startTyping,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startTyping]);
 
-  const showAction = module.index === 5 && typingDone && !!module.action?.firstStep;
+  const showAction = module.index === 5 && (typingDone || !startTyping) && !!module.action?.firstStep;
 
-  if (!startTyping && !isTyping) return null;
+  if (!startTyping && !isTyping && !typingDone) return null;
 
   return (
     <div className="module-enter flex gap-3 mb-5">

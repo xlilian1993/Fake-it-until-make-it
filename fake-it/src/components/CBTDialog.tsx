@@ -37,7 +37,7 @@ function Avatar({ characterName, domainColor, size = 36 }: { characterName: stri
   );
 }
 
-function PastBubble({ module, domainColor, characterName }: { module: CBTModule; domainColor: string; characterName: string }) {
+function PastBubble({ module, domainColor, characterName, isCurrent }: { module: CBTModule; domainColor: string; characterName: string; isCurrent: boolean }) {
   return (
     <div className="flex gap-3 mb-5">
       <Avatar characterName={characterName} domainColor={domainColor} />
@@ -47,7 +47,7 @@ function PastBubble({ module, domainColor, characterName }: { module: CBTModule;
             {module.content}
           </p>
         </div>
-        {module.index === 5 && 'action' in module && module.action && (
+        {!isCurrent && module.index === 5 && 'action' in module && module.action && (
           <div className="mt-2 space-y-2">
             <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: `${domainColor}18` }}>
               <p className="text-xs text-warm-gray mb-1">🎬 今天的排练</p>
@@ -275,6 +275,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                 module={module}
                 domainColor={domainColor}
                 characterName={characterName}
+                isCurrent={idx === currentModuleIdx}
               />
             ))}
 
@@ -309,10 +310,10 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                 <p className="text-sm text-warm-gray mb-3">
                   对话已结束 · Fake it until you make it 🌟
                 </p>
-                <div className="flex gap-3 justify-center">
+                <div className="flex gap-2 justify-center">
                   <button
                     onClick={(e) => { e.stopPropagation(); onClose(); }}
-                    className="px-6 py-2 rounded-xl text-sm font-medium transition-colors"
+                    className="px-2.5 py-1.5 rounded-xl text-[11px] font-medium transition-colors"
                     style={{ background: 'rgba(255,158,199,0.15)', color: '#E87890' }}
                   >
                     回到气泡
@@ -322,10 +323,17 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                       e.stopPropagation();
                       if (cbtData) downloadCBTShare(question, characterName, cbtData.modules);
                     }}
-                    className="px-6 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 transition-colors"
+                    className="px-2.5 py-1.5 rounded-xl text-[11px] font-medium text-white hover:opacity-90 transition-colors"
                     style={{ background: 'linear-gradient(135deg, var(--color-rebel), var(--color-leader))' }}
                   >
                     📤 分享长图
+                  </button>
+                  <button
+                    onClick={(e) => e.stopPropagation()}
+                    className="px-2.5 py-1.5 rounded-xl text-[11px] font-medium text-white hover:opacity-90 transition-colors"
+                    style={{ background: 'linear-gradient(135deg, var(--color-explorer), var(--color-philosopher))' }}
+                  >
+                    🔍 深入聊聊
                   </button>
                   <button
                     onClick={(e) => e.stopPropagation()}

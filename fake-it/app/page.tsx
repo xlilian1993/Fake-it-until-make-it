@@ -561,26 +561,29 @@ export default function Page() {
             {/* 随机人物卡片 */}
             {spotlightChar && (
               <div className="rounded-2xl shadow-lg"
-                style={{ width: '280px', maxWidth: 'calc(100vw - 64px)', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(0,0,0,0.04)', marginBottom: '20vh' }}>
+                style={{ width: '280px', maxWidth: 'calc(100vw - 64px)', background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.04)', marginBottom: '20vh' }}>
                 {/* 头像区 */}
                 <div className="flex items-center gap-4 px-6 pt-16 pb-12">
                   {(() => {
                     const av = getNewAvatar(spotlightChar.name);
                     return isImageAvatar(av) ? (
                       <img src={av} alt={spotlightChar.name}
-                        style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.6)', flexShrink: 0, opacity: 0.65 }} />
+                        style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.6)', flexShrink: 0, opacity: 1 }} />
                     ) : (
-                      <span style={{ width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', flexShrink: 0, opacity: 0.65, background: 'linear-gradient(135deg, rgba(245,240,232,0.5), rgba(237,228,211,0.5))' }}>🫧</span>
+                      <span style={{ width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', flexShrink: 0, opacity: 1, background: 'linear-gradient(135deg, rgba(245,240,232,0.5), rgba(237,228,211,0.5))' }}>🫧</span>
                     );
                   })()}
                   <div className="min-w-0">
-                    <h3 className="text-sm font-semibold truncate" style={{ color: 'rgba(62,50,40,0.55)' }}>{spotlightChar.name}</h3>
-                    <p className="text-xs mt-0.5" style={{ color: 'rgba(62,50,40,0.4)' }}>{spotlightChar.tagline}</p>
+                    <h3 className="text-sm font-semibold truncate" style={{ color: 'rgba(62,50,40,1)' }}>{spotlightChar.name}</h3>
+                    <p className="text-xs mt-0.5" style={{ color: 'rgba(62,50,40,1)' }}>{spotlightChar.tagline}</p>
                   </div>
                 </div>
                 {/* 描述 */}
-                <div className="px-6 pt-4 pb-20">
-                  <p className="text-sm" style={{ lineHeight: '1.8', color: 'rgba(62,50,40,0.45)' }}>{spotlightChar.desc}</p>
+                <div className="px-6 pt-4 pb-8">
+                  <p className="text-sm italic mb-6" style={{ color: 'rgba(62,50,40,0.65)' }}>&ldquo;{spotlightChar.quote}&rdquo;</p>
+                  <br />
+                  <p className="text-sm" style={{ lineHeight: '1.8', color: 'rgba(62,50,40,0.7)' }}>{spotlightChar.desc}</p>
+                  <br />
                 </div>
               </div>
             )}
