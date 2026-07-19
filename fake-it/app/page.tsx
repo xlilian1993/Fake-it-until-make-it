@@ -557,7 +557,7 @@ export default function Page() {
               style={{ border: '1px solid rgba(0,0,0,0.04)', zIndex: 0, top: '0%', left: '6%', right: '6%', bottom: '44%' }}>
             {/* 泡泡 */}
             <div className="absolute" style={{ top: '20%', left: 0, right: 0, bottom: 0 }}>
-            {bubbles.map((b, i) => {
+            {bubbles.map((b) => {
               // 神秘气泡用独立组件渲染
               if (b.isMystery) {
                 return (
