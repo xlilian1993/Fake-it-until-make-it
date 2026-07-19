@@ -17,8 +17,7 @@ const MAX_ROUNDTABLE_MEMBERS = 3;
 const CARD_W = 300;
 const CARD_H = 210;
 
-// Grid zones: 神秘气泡居中，普通气泡四角散开
-const MYSTERY_ZONE = { cx: 0.50, cy: 0.42 };
+// Grid zones: 普通气泡四角散开
 const CORNER_ZONES = [
   { cx: 0.12, cy: 0.06 },
   { cx: 0.88, cy: 0.10 },
@@ -62,7 +61,7 @@ function spreadPosition(size: number, placed: { x: number; y: number; r: number 
 
 function buildBubbles(items: RecommendItem[]): Bubble[] {
   const placed: { x: number; y: number; r: number }[] = [];
-  return items.map((item, i): Bubble => {
+  return items.map((item): Bubble => {
     const size = matchScoreToSize(item.matchScore);
     const sizePx = SIZE_PX[size];
     const base = size === 'large' ? 12 : size === 'medium' ? 10 : 8;
@@ -112,7 +111,7 @@ export default function Page() {
   const [roundTablePerspectives, setRoundTablePerspectives] = useState<{ characterName: string; viewpoint: string; story: string }[]>([]);
   const [roundTableLoading, setRoundTableLoading] = useState(false);
   const [roundTableLoadingText, setRoundTableLoadingText] = useState('');
-  const [completedCBTSessions, setCompletedCBTSessions] = useState<Record<string, { question: string; modules: CBTResponse['modules'] }>>({});
+  const [_completedCBTSessions, setCompletedCBTSessions] = useState<Record<string, { question: string; modules: CBTResponse['modules'] }>>({});
   const [shareTarget, setShareTarget] = useState<{ characterName: string; question: string; modules: CBTResponse['modules'] } | null>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
