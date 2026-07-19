@@ -19,6 +19,7 @@ function isMobile(): boolean {
   return /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isWechat(): boolean {
   return /MicroMessenger/i.test(navigator.userAgent);
 }
