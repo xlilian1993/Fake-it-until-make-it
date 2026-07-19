@@ -19,51 +19,69 @@ function isMobile(): boolean {
   return /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
 }
 
-async function captureToDataUrl(el: HTMLElement): Promise<string> {
+function isWechat(): boolean {
+  return /MicroMessenger/i.test(navigator.userAgent);
+}
+
+async function captureToUrl(el: HTMLElement): Promise<string> {
   await new Promise(r => requestAnimationFrame(r));
   const canvas = await html2canvas(el, {
     scale: 2,
     useCORS: true,
+    allowTaint: true,
     windowWidth: el.scrollWidth,
     windowHeight: el.scrollHeight,
     backgroundColor: '#FDF6EE',
   });
   document.body.removeChild(el);
-  return canvas.toDataURL('image/png');
+  // 微信浏览器 data URL 有大小限制，用 Blob URL 替代
+  return new Promise(resolve => {
+    canvas.toBlob(blob => {
+      if (blob) {
+        resolve(URL.createObjectURL(blob));
+      } else {
+        resolve(canvas.toDataURL('image/png'));
+      }
+    }, 'image/png');
+  });
 }
 
-function showImageForSave(dataUrl: string, filename: string): void {
+function showImageForSave(imgUrl: string, filename: string): void {
   if (isMobile()) {
     const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;user-select:none;-webkit-user-select:none';
 
     const img = document.createElement('img');
-    img.src = dataUrl;
-    img.style.cssText = 'max-width:90%;max-height:75%;object-fit:contain;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.4)';
+    img.src = imgUrl;
+    img.style.cssText = 'max-width:90%;max-height:75%;object-fit:contain;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.4);-webkit-touch-callout:default;pointer-events:auto';
 
     const hint = document.createElement('p');
     hint.textContent = '长按图片保存到相册';
-    hint.style.cssText = 'color:rgba(255,255,255,0.8);font-size:14px';
+    hint.style.cssText = 'color:rgba(255,255,255,0.8);font-size:14px;user-select:none;-webkit-user-select:none';
 
     const close = document.createElement('button');
     close.textContent = '关闭';
-    close.style.cssText = 'padding:8px 24px;border-radius:999px;background:rgba(255,255,255,0.2);color:#fff;font-size:14px;border:none;cursor:pointer';
+    close.style.cssText = 'padding:8px 24px;border-radius:999px;background:rgba(255,255,255,0.2);color:#fff;font-size:14px;border:none;cursor:pointer;user-select:none;-webkit-user-select:none';
 
     overlay.appendChild(img);
     overlay.appendChild(hint);
     overlay.appendChild(close);
 
-    close.onclick = () => document.body.removeChild(overlay);
-    overlay.onclick = (e) => { if (e.target === overlay) document.body.removeChild(overlay); };
+    close.onclick = () => {
+      if (imgUrl.startsWith('blob:')) URL.revokeObjectURL(imgUrl);
+      document.body.removeChild(overlay);
+    };
+    overlay.onclick = (e) => { if (e.target === overlay) close.onclick?.(); };
 
     document.body.appendChild(overlay);
   } else {
     const link = document.createElement('a');
     link.download = filename;
-    link.href = dataUrl;
+    link.href = imgUrl;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    if (imgUrl.startsWith('blob:')) URL.revokeObjectURL(imgUrl);
   }
 }
 
@@ -117,7 +135,7 @@ export function downloadCBTShare(question: string, characterName: string, module
   `;
 
   const el = createCard(html);
-  captureToDataUrl(el).then(url => showImageForSave(url, `fake-it-${characterName}.png`));
+  captureToUrl(el).then(url => showImageForSave(url, `fake-it-${characterName}.png`));
 }
 
 export function downloadRoundTableShare(question: string, perspectives: Perspective[]): void {
@@ -155,7 +173,7 @@ export function downloadRoundTableShare(question: string, perspectives: Perspect
   `;
 
   const el = createCard(html);
-  captureToDataUrl(el).then(url => showImageForSave(url, 'fake-it-roundtable.png'));
+  captureToUrl(el).then(url => showImageForSave(url, 'fake-it-roundtable.png'));
 }
 
 function escapeHtml(s: string): string {
