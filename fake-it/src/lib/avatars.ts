@@ -22,6 +22,7 @@ const AVATAR_MAP: Record<string, string> = {
   '张桂梅': '/avatars/zhangguimei.jpg',
   '安陵容': '/avatars/anlingrong.png',
   '苏轼': '/avatars/sushi.png',
+  '苏东坡': '/avatars/sushi.png',
   '王阳明': '/avatars/wangyangming.png',
   '爱因斯坦': '/avatars/einstein.png',
   '孙悟空': '/avatars/sunwukong.png',
