@@ -90,6 +90,14 @@ export default function Page() {
   const [shareTarget, setShareTarget] = useState<{ characterName: string; question: string; modules: CBTResponse['modules'] } | null>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
+  const PLACEHOLDERS = ['最近总是觉得自己不够好...', '想辞职又不敢...', '努力了却看不到结果...'];
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setPlaceholderIdx(i => (i + 1) % PLACEHOLDERS.length), 5000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [, setDragState] = useState<{
     isDragging: boolean; dragId: string | null; isOverDropZone: boolean;
   }>({ isDragging: false, dragId: null, isOverDropZone: false });
@@ -185,7 +193,7 @@ export default function Page() {
   }, [recommendCache, roundTableMembers]);
 
   function handleSubmit() {
-    if (!question.trim()) return;
+    const q = question.trim() || PLACEHOLDERS[placeholderIdx];
     setError(null); setIsLoading(true); setLoadingText('正在为你寻找角色...');
     setRoundTableMembers([]); setRoundTablePerspectives([]);
     setLoadingDone(false); setLoadingProgress(0);
@@ -209,7 +217,7 @@ export default function Page() {
 
     fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/recommend`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question: q }),
     })
       .then(async (res) => { if (!res.ok) { const e = await res.json(); throw new Error(e.error || '推荐失败'); } return res.json(); })
       .then(async (data) => {
@@ -310,6 +318,16 @@ export default function Page() {
     }));
   }
 
+  function handleGoHome() {
+    setBubbles([]);
+    setRecommendCache(null);
+    setQuestion('');
+    setError(null);
+    setRoundTableMembers([]);
+    setRoundTablePerspectives([]);
+    setRoundTableActivated(false);
+  }
+
   function handleGoSee() {
     setIsLoading(false);
     setLoadingDone(false);
@@ -371,11 +389,11 @@ export default function Page() {
                   el.style.height = 'auto';
                   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
                 }}
-                onKeyDown={handleKeyDown} placeholder="今天想聊点什么" maxLength={200} rows={1}
+                onKeyDown={handleKeyDown} placeholder={PLACEHOLDERS[placeholderIdx]} maxLength={200} rows={1}
                 className="input-warm flex-1 px-4 py-3 text-sm text-warm-black placeholder:text-warm-gray/50 rounded-2xl resize-none"
                 style={{ minHeight: '48px', maxHeight: '120px' }}
                 aria-label="输入你的问题" />
-              <button onClick={handleSubmit} disabled={!question.trim() || isLoading}
+              <button onClick={handleSubmit} disabled={isLoading}
                 className="px-5 py-3 rounded-2xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
                 style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))', minHeight: '48px' }}
                 aria-label="提交问题">
@@ -407,10 +425,17 @@ export default function Page() {
 
       {/* 提示 / 输入框 — 非空态才有 */}
       {bubbles.length > 0 && !isLoading ? (
-        <div className="px-5 pt-4 pb-1 flex-shrink-0">
-          <p className="text-sm text-warm-gray/50 text-center">
+        <div className="px-5 pt-4 pb-1 flex-shrink-0 flex items-center gap-3">
+          <button onClick={handleGoHome}
+            className="w-7 h-7 rounded-full bg-white/70 flex items-center justify-center shadow-sm flex-shrink-0 hover:bg-white transition-colors"
+            aria-label="返回主页"
+          >
+            <span className="text-warm-gray/60 text-xs">←</span>
+          </button>
+          <p className="text-sm text-warm-gray/50 text-center flex-1">
             点击气泡跟TA聊聊，或者拖进圆桌群聊
           </p>
+          <div className="w-7 flex-shrink-0" />
         </div>
       ) : !isEmpty && !isLoading ? (
         <div className="px-5 pt-3 pb-1 flex-shrink-0">
@@ -421,11 +446,11 @@ export default function Page() {
                 el.style.height = 'auto';
                 el.style.height = Math.min(el.scrollHeight, 120) + 'px';
               }}
-              onKeyDown={handleKeyDown} placeholder="今天想聊点什么" maxLength={200} rows={1}
+              onKeyDown={handleKeyDown} placeholder={PLACEHOLDERS[placeholderIdx]} maxLength={200} rows={1}
               className="input-warm flex-1 px-4 py-3 text-sm text-warm-black placeholder:text-warm-gray/50 rounded-2xl resize-none"
               style={{ minHeight: '48px', maxHeight: '120px' }}
               aria-label="输入你的问题" />
-            <button onClick={handleSubmit} disabled={!question.trim() || isLoading}
+            <button onClick={handleSubmit} disabled={isLoading}
               className="px-5 py-3 rounded-2xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
               style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))', minHeight: '48px' }}
               aria-label="提交问题">
