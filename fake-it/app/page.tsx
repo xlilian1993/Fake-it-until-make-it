@@ -524,6 +524,7 @@ export default function Page() {
         {/* 气泡 */}
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center px-8" style={{
+            paddingTop: '12vh',
             backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_PATH || ''}/avatars-bg.png)`,
             backgroundSize: 'cover',
             backgroundPosition: 'center top',
@@ -535,7 +536,7 @@ export default function Page() {
                 &ldquo;把心事写下来，时光另一头，自有人回信。&rdquo;
               </p>
 
-              <div className="flex flex-col items-center w-full" style={{ maxWidth: '260px', marginTop: '10vh' }}>
+              <div className="flex flex-col items-center w-full" style={{ maxWidth: '260px', marginTop: '5vh' }}>
               <div className="w-full rounded-full overflow-hidden" style={{ height: '4px', background: 'rgba(255,158,199,0.15)' }}>
                 <div className="h-full rounded-full transition-all duration-300 ease-out"
                   style={{
@@ -561,9 +562,10 @@ export default function Page() {
             {/* 随机人物卡片 */}
             {spotlightChar && (
               <div className="rounded-2xl shadow-lg"
-                style={{ width: '280px', maxWidth: 'calc(100vw - 64px)', background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.04)', marginBottom: '20vh' }}>
+                style={{ width: '280px', maxWidth: 'calc(100vw - 64px)', background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.04)', marginBottom: '10vh' }}>
+                <br />
                 {/* 头像区 */}
-                <div className="flex items-center gap-4 px-6 pt-16 pb-12">
+                <div className="flex items-center gap-4 px-6 pt-8 pb-12">
                   {(() => {
                     const av = getNewAvatar(spotlightChar.name);
                     return isImageAvatar(av) ? (
