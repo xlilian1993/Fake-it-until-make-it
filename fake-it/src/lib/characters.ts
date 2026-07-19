@@ -34,3 +34,41 @@ const CHARACTERS = [
 export function getCharacterNames(): string[] {
   return CHARACTERS;
 }
+
+/** 角色热度分值 (0-100)，用于 LLM 选角时结合关联度综合排序 */
+export const CHARACTER_HOTNESS: Record<string, number> = {
+  '甄嬛': 95,
+  '林黛玉': 92,
+  '乔布斯': 88,
+  '宫崎骏': 90,
+  '庄子': 82,
+  '阿姆斯特朗': 78,
+  '谷爱凌': 80,
+  '哈兰德': 95,
+  '居里夫人': 85,
+  '郎平': 82,
+  '马云': 78,
+  '马斯克': 88,
+  '肖邦': 75,
+  '贝多芬': 88,
+  '牛顿': 85,
+  '泰勒斯威夫特': 95,
+  '达芬奇': 90,
+  '莫扎特': 85,
+  '张桂梅': 88,
+  '安陵容': 78,
+  '苏轼': 92,
+  '王阳明': 85,
+  '爱因斯坦': 92,
+  '孙悟空': 95,
+  '莎士比亚': 88,
+  '李白': 90,
+  '武则天': 85,
+  '诸葛亮': 88,
+  '梵高': 88,
+  '王菲': 72,
+};
+
+export function getCharacterHotness(name: string): number {
+  return CHARACTER_HOTNESS[name] || 50;
+}

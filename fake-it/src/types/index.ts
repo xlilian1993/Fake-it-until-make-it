@@ -64,6 +64,7 @@ export interface RecommendItem {
   matchScore: number;
   domain: CharacterDomain;
   source: CharacterSource;
+  isMystery?: boolean;
   story: {
     intro: CharacterIntro;
     facets: LifeFacet[];

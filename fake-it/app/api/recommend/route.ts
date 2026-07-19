@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callLLM, extractJSON } from '@/lib/llm';
 import { buildRecommendPrompt } from '@/lib/prompts';
+import { getDailyMystery } from '@/lib/mystery';
 import type { RecommendResult } from '@/types';
 
 export const runtime = 'nodejs';
@@ -14,7 +15,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'question 字段必填' }, { status: 400 });
     }
 
-    const prompt = buildRecommendPrompt(question);
+    const mystery = getDailyMystery();
+    const prompt = buildRecommendPrompt(question, mystery.name);
     const rawResponse = await callLLM(prompt);
     const jsonStr = extractJSON(rawResponse);
 

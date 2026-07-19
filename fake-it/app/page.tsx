@@ -11,7 +11,6 @@ import { ShareImageModal } from '@/components/ShareImageModal';
 import type { Bubble, RecommendItem, CBTResponse } from '@/types';
 import { matchScoreToSize, SIZE_PX, DOMAIN_COLORS } from '@/lib/colors';
 import { getAvatar, isImageAvatar, getNewAvatar } from '@/lib/avatars';
-import { getDailyMystery, toRecommendItem } from '@/lib/mystery';
 import { NEW_CHARACTER_DATA } from '@/lib/characters_new';
 
 const CANVAS_WIDTH = 375;
@@ -61,38 +60,11 @@ function buildBubbles(items: RecommendItem[]): Bubble[] {
       oy: `${(Math.random() * -60 - 10).toFixed(1)}px`,
       mx: `${(Math.random() * 30 - 15).toFixed(1)}px`,
       my: `${(Math.random() * -50).toFixed(1)}px`,
-      isMystery: false,
+      isMystery: item.isMystery || false,
       isRevealed: false,
-      hasGlow: false,
+      hasGlow: item.isMystery || false,
     };
   });
-}
-
-function buildMysteryBubble(): Bubble {
-  const mystery = getDailyMystery();
-  const id = mystery.name.toLowerCase().replace(/\s+/g, '-');
-  return {
-    character: {
-      id,
-      name: mystery.name,
-      avatar: getAvatar(mystery.name),
-      domain: mystery.domain,
-      source: mystery.source,
-      matchScore: 88,
-    },
-    size: 'large',
-    color: '#FFD700',
-    position: { x: 60, y: 360 },
-    animationDuration: 18,
-    animationDelay: -3,
-    ox: '15px',
-    oy: '-30px',
-    mx: '-10px',
-    my: '-40px',
-    isMystery: true,
-    isRevealed: false,
-    hasGlow: true,
-  };
 }
 
 export default function Page() {
@@ -240,15 +212,8 @@ export default function Page() {
       .then(async (res) => { if (!res.ok) { const e = await res.json(); throw new Error(e.error || '推荐失败'); } return res.json(); })
       .then(async (data) => {
           const chars: RecommendItem[] = data.characters;
-          const mysteryItem = toRecommendItem(getDailyMystery());
-          const alreadyExists = chars.some((c) => c.name === mysteryItem.name);
-          let allChars = chars;
           const bubs = buildBubbles(chars);
-          if (!alreadyExists) {
-            allChars = [...chars, mysteryItem];
-            bubs.push(buildMysteryBubble());
-          }
-          setRecommendCache(allChars);
+          setRecommendCache(chars);
           setBubbles(bubs);
           clearInterval(progressTimer);
           setLoadingProgress(100);
