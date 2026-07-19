@@ -37,8 +37,9 @@ export function CBTModuleView({ module, characterName, avatarColor, startTyping,
     setDisplayText('');
 
     timerRef.current = setInterval(() => {
-      if (index < module.content.length) {
-        setDisplayText(module.content.slice(0, index + 1));
+      const content = module.content || '';
+      if (index < content.length) {
+        setDisplayText(content.slice(0, index + 1));
         index += 1;
       } else {
         if (timerRef.current) clearInterval(timerRef.current);
@@ -53,7 +54,7 @@ export function CBTModuleView({ module, characterName, avatarColor, startTyping,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startTyping]);
 
-  const showAction = module.index === 5 && typingDone && 'action' in module && module.action;
+  const showAction = module.index === 5 && typingDone && !!module.action?.firstStep;
 
   if (!startTyping && !isTyping) return null;
 

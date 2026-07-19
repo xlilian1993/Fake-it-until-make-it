@@ -37,6 +37,7 @@ export function MysteryBubble({ bubble, onClick, onPointerDown }: MysteryBubbleP
     <div
       className="bubble-float absolute flex flex-col items-center select-none"
       style={{
+        zIndex: 10,
         left: bubble.position.x - sz / 2,
         top: bubble.position.y - sz / 2,
         touchAction: 'none',

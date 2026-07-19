@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { CBTModuleView } from './CBTModule';
 import { getAvatar, isImageAvatar } from '@/lib/avatars';
@@ -96,6 +96,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
   const [modulePhase, setModulePhase] = useState<'waiting' | 'typing' | 'done'>('waiting');
   const [isLoading, setIsLoading] = useState(true);
   const [allComplete, setAllComplete] = useState(false);
+  const clickLockRef = useRef(false);
 
   const domainColor = (DOMAIN_COLORS as Record<string, string>)[characterDomain] || '#FFD49E';
 
@@ -136,16 +137,18 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
   const handleTypingDone = useCallback(() => {
     setModulePhase('done');
     // 最后一步自动弹出完成页
-    if (cbtData && currentModuleIdx >= cbtData.modules.length - 1) {
+    if (currentModuleIdx >= (cbtData?.modules?.length ?? 0) - 1) {
+      const data = cbtData;
       setTimeout(() => {
         setAllComplete(true);
-        if (cbtData) onComplete?.(cbtData);
+        if (data) onComplete?.(data);
       }, 800);
     }
   }, [cbtData, currentModuleIdx, onComplete]);
 
   const handleBubbleClick = useCallback(() => {
-    if (isLoading || modulePhase === 'typing') return;
+    if (isLoading || modulePhase === 'typing' || clickLockRef.current) return;
+    clickLockRef.current = true;
 
     if (cbtData && currentModuleIdx < cbtData.modules.length - 1) {
       setCurrentModuleIdx(prev => prev + 1);
@@ -154,6 +157,8 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
       setAllComplete(true);
       if (cbtData) onComplete?.(cbtData);
     }
+
+    setTimeout(() => { clickLockRef.current = false; }, 600);
   }, [isLoading, modulePhase, currentModuleIdx, cbtData, onComplete]);
 
   return (

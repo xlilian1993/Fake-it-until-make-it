@@ -17,31 +17,57 @@ const MAX_ROUNDTABLE_MEMBERS = 3;
 const CARD_W = 300;
 const CARD_H = 210;
 
-// Grid zones to spread bubbles apart (pixel-based within card)
-const ZONES = [
-  { cx: 0.15, cy: 0.08 },
-  { cx: 0.85, cy: 0.12 },
-  { cx: 0.15, cy: 0.88 },
-  { cx: 0.85, cy: 0.85 },
-  { cx: 0.50, cy: 0.48 },
+// Grid zones: 神秘气泡居中，普通气泡四角散开
+const MYSTERY_ZONE = { cx: 0.50, cy: 0.42 };
+const CORNER_ZONES = [
+  { cx: 0.12, cy: 0.06 },
+  { cx: 0.88, cy: 0.10 },
+  { cx: 0.12, cy: 0.90 },
+  { cx: 0.88, cy: 0.88 },
 ];
 
-function spreadPosition(size: number, index: number) {
-  const zone = ZONES[index % ZONES.length];
-  const jitter = 45;
-  return {
-    x: Math.max(size / 2 + 4, Math.min(CARD_W - size / 2 - 4,
-      zone.cx * CARD_W + (Math.random() - 0.5) * jitter * 2)),
-    y: Math.max(size / 2 + 4, Math.min(CARD_H - size / 2 - 4,
-      zone.cy * CARD_H + (Math.random() - 0.5) * jitter * 2)),
-  };
+function spreadPosition(size: number, placed: { x: number; y: number; r: number }[], isMystery: boolean): { x: number; y: number } {
+  // 神秘气泡居中，普通气泡按顺序分配到四角
+  const zone = isMystery
+    ? { cx: 0.50, cy: 0.42 }
+    : CORNER_ZONES[placed.length % CORNER_ZONES.length];
+  const jitter = isMystery ? 15 : 40;
+  const r = size / 2;
+  let best = { x: 0, y: 0 };
+  let bestDist = -Infinity;
+
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const x = Math.max(r + 4, Math.min(CARD_W - r - 4,
+      zone.cx * CARD_W + (Math.random() - 0.5) * jitter * 2));
+    const y = Math.max(r + 4, Math.min(CARD_H - r - 4,
+      zone.cy * CARD_H + (Math.random() - 0.5) * jitter * 2));
+
+    let minDist = Infinity;
+    for (const p of placed) {
+      const dx = x - p.x;
+      const dy = y - p.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) - r - p.r;
+      if (dist < minDist) minDist = dist;
+    }
+
+    if (minDist > bestDist) {
+      bestDist = minDist;
+      best = { x, y };
+    }
+    if (minDist >= 35) break;
+  }
+
+  return best;
 }
 
 function buildBubbles(items: RecommendItem[]): Bubble[] {
+  const placed: { x: number; y: number; r: number }[] = [];
   return items.map((item, i): Bubble => {
     const size = matchScoreToSize(item.matchScore);
     const sizePx = SIZE_PX[size];
-    const base = size === 'large' ? 20 : size === 'medium' ? 16 : 12;
+    const base = size === 'large' ? 12 : size === 'medium' ? 10 : 8;
+    const pos = spreadPosition(sizePx, placed, item.isMystery || false);
+    placed.push({ x: pos.x, y: pos.y, r: sizePx / 2 });
     return {
       character: {
         id: item.name.toLowerCase().replace(/\s+/g, '-'),
@@ -53,8 +79,8 @@ function buildBubbles(items: RecommendItem[]): Bubble[] {
       },
       size,
       color: DOMAIN_COLORS[item.domain] || '#FFD49E',
-      position: spreadPosition(sizePx, i),
-      animationDuration: base + Math.random() * 8,
+      position: pos,
+      animationDuration: base + Math.random() * 6,
       animationDelay: -Math.random() * 12,
       ox: `${(Math.random() * 70 - 35).toFixed(1)}px`,
       oy: `${(Math.random() * 40 - 20).toFixed(1)}px`,
@@ -194,6 +220,7 @@ export default function Page() {
 
   function handleSubmit() {
     const q = question.trim() || PLACEHOLDERS[placeholderIdx];
+    setQuestion(q);
     setError(null); setIsLoading(true); setLoadingText('正在为你寻找角色...');
     setRoundTableMembers([]); setRoundTablePerspectives([]);
     setLoadingDone(false); setLoadingProgress(0);
@@ -618,21 +645,6 @@ export default function Page() {
                     )}
                   </div>
 
-                  {/* 分享按钮 — CBT 完成后显示 */}
-                  {completedCBTSessions[b.character.name] && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const session = completedCBTSessions[b.character.name];
-                        setShareTarget({ characterName: b.character.name, ...session });
-                      }}
-                      className="mt-1 flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] text-white font-medium shadow-md active:scale-90 transition-transform"
-                      style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}
-                    >
-                      <span style={{ fontSize: '10px' }}>📤</span>
-                      分享
-                    </button>
-                  )}
                   </div>
                 </div>
               );
