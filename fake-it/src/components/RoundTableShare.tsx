@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
-import { downloadCardAsPng } from '@/lib/downloadImage';
+import { renderCardToDataUrl, triggerDownload, isMobile } from '@/lib/downloadImage';
 
 interface Perspective {
   characterName: string;
@@ -24,7 +24,12 @@ export function RoundTableShare({ question, perspectives, onClose }: RoundTableS
     didDownload.current = true;
     const timer = setTimeout(async () => {
       if (!cardRef.current) return;
-      await downloadCardAsPng(cardRef.current, 'fake-it-roundtable.png');
+      const url = await renderCardToDataUrl(cardRef.current);
+      if (isMobile()) {
+        showMobileOverlay(url);
+      } else {
+        triggerDownload(url, 'fake-it-roundtable.png');
+      }
       onClose();
     }, 1000);
     return () => clearTimeout(timer);
@@ -84,4 +89,30 @@ export function RoundTableShare({ question, perspectives, onClose }: RoundTableS
       </div>
     </div>
   );
+}
+
+function showMobileOverlay(dataUrl: string): void {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px';
+
+  const img = document.createElement('img');
+  img.src = dataUrl;
+  img.style.cssText = 'max-width:90%;max-height:75%;object-fit:contain;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.4)';
+
+  const hint = document.createElement('p');
+  hint.textContent = '长按图片保存到相册';
+  hint.style.cssText = 'color:rgba(255,255,255,0.8);font-size:14px';
+
+  const close = document.createElement('button');
+  close.textContent = '关闭';
+  close.style.cssText = 'padding:8px 24px;border-radius:999px;background:rgba(255,255,255,0.2);color:#fff;font-size:14px;border:none;cursor:pointer';
+
+  overlay.appendChild(img);
+  overlay.appendChild(hint);
+  overlay.appendChild(close);
+
+  close.onclick = () => document.body.removeChild(overlay);
+  overlay.onclick = (e) => { if (e.target === overlay) document.body.removeChild(overlay); };
+
+  document.body.appendChild(overlay);
 }

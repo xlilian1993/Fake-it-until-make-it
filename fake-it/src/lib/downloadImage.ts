@@ -1,10 +1,9 @@
 import html2canvas from 'html2canvas';
 
-export async function downloadCardAsPng(el: HTMLElement, filename: string): Promise<void> {
+export async function renderCardToDataUrl(el: HTMLElement): Promise<string> {
   const w = el.scrollWidth;
   const h = el.scrollHeight;
 
-  // 创建包裹层：必须在视口内才能被 html2canvas 捕获
   const wrapper = document.createElement('div');
   wrapper.style.cssText = `position:fixed;top:0;left:0;width:${w}px;height:${h}px;z-index:99999;background:#FDF6EE;border-radius:16px;overflow:hidden;opacity:0.999;`;
   const inner = el.cloneNode(true) as HTMLElement;
@@ -27,10 +26,19 @@ export async function downloadCardAsPng(el: HTMLElement, filename: string): Prom
 
   document.body.removeChild(wrapper);
 
+  return canvas.toDataURL('image/png');
+}
+
+export function triggerDownload(dataUrl: string, filename: string): boolean {
   const link = document.createElement('a');
   link.download = filename;
-  link.href = canvas.toDataURL('image/png');
+  link.href = dataUrl;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  return true;
+}
+
+export function isMobile(): boolean {
+  return /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
 }

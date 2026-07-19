@@ -581,11 +581,7 @@ export default function Page() {
           <CBTDialog characterName={selectedCharacterName} question={question}
             characterDomain={cbtDomain} onClose={() => setSelectedCharacterName(null)}
             onError={(msg) => setError(msg)}
-            onComplete={handleCBTComplete}
-            onShare={(data) => {
-              setSelectedCharacterName(null);
-              setShareTarget({ characterName: data.characterName, question: data.question, modules: data.modules });
-            }} />
+            onComplete={handleCBTComplete} />
         )}
       </AnimatePresence>
 

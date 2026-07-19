@@ -1,5 +1,5 @@
 import html2canvas from 'html2canvas';
-import type { CBTModule } from '@/types';
+import type { CBTModule, CBTActionModule } from '@/types';
 
 interface Perspective {
   characterName: string;
@@ -7,7 +7,7 @@ interface Perspective {
   story: string;
 }
 
-function createCard(html: string, className?: string): HTMLElement {
+function createCard(html: string): HTMLElement {
   const wrapper = document.createElement('div');
   wrapper.style.cssText = `position:fixed;top:0;left:0;width:340px;z-index:99999;background:#FDF6EE;border-radius:16px;padding:28px 20px;font-family:"Noto Serif SC","Noto Sans SC",serif;color:#3D3226;line-height:1.6;`;
   wrapper.innerHTML = html;
@@ -15,7 +15,11 @@ function createCard(html: string, className?: string): HTMLElement {
   return wrapper;
 }
 
-async function captureAndDownload(el: HTMLElement, filename: string): Promise<void> {
+function isMobile(): boolean {
+  return /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
+}
+
+async function captureToDataUrl(el: HTMLElement): Promise<string> {
   await new Promise(r => requestAnimationFrame(r));
   const canvas = await html2canvas(el, {
     scale: 2,
@@ -25,19 +29,47 @@ async function captureAndDownload(el: HTMLElement, filename: string): Promise<vo
     backgroundColor: '#FDF6EE',
   });
   document.body.removeChild(el);
+  return canvas.toDataURL('image/png');
+}
 
-  const dataUrl = canvas.toDataURL('image/png');
-  const link = document.createElement('a');
-  link.download = filename;
-  link.href = dataUrl;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+function showImageForSave(dataUrl: string, filename: string): void {
+  if (isMobile()) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px';
+
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.style.cssText = 'max-width:90%;max-height:75%;object-fit:contain;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.4)';
+
+    const hint = document.createElement('p');
+    hint.textContent = '长按图片保存到相册';
+    hint.style.cssText = 'color:rgba(255,255,255,0.8);font-size:14px';
+
+    const close = document.createElement('button');
+    close.textContent = '关闭';
+    close.style.cssText = 'padding:8px 24px;border-radius:999px;background:rgba(255,255,255,0.2);color:#fff;font-size:14px;border:none;cursor:pointer';
+
+    overlay.appendChild(img);
+    overlay.appendChild(hint);
+    overlay.appendChild(close);
+
+    close.onclick = () => document.body.removeChild(overlay);
+    overlay.onclick = (e) => { if (e.target === overlay) document.body.removeChild(overlay); };
+
+    document.body.appendChild(overlay);
+  } else {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 }
 
 export function downloadCBTShare(question: string, characterName: string, modules: CBTModule[]): void {
   const modsHtml = modules.map((mod, i) => {
-    const action = mod.index === 5 && 'action' in mod && (mod as any).action;
+    const action = mod.index === 5 && 'action' in mod ? (mod as CBTActionModule).action : null;
     return `
       <div style="margin-bottom:${i === modules.length - 1 ? '0' : '12px'}">
         <p style="font-size:11px;color:rgba(61,50,38,0.35);margin:0 0 4px 4px">${escapeHtml(mod.title)}</p>
@@ -83,7 +115,7 @@ export function downloadCBTShare(question: string, characterName: string, module
   `;
 
   const el = createCard(html);
-  captureAndDownload(el, `fake-it-${characterName}.png`);
+  captureToDataUrl(el).then(url => showImageForSave(url, `fake-it-${characterName}.png`));
 }
 
 export function downloadRoundTableShare(question: string, perspectives: Perspective[]): void {
@@ -119,7 +151,7 @@ export function downloadRoundTableShare(question: string, perspectives: Perspect
   `;
 
   const el = createCard(html);
-  captureAndDownload(el, 'fake-it-roundtable.png');
+  captureToDataUrl(el).then(url => showImageForSave(url, 'fake-it-roundtable.png'));
 }
 
 function escapeHtml(s: string): string {

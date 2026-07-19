@@ -4,7 +4,7 @@ import React from 'react';
 import { getAvatar, isImageAvatar } from '@/lib/avatars';
 
 const ROLLER_POOL = [
-  '甄嬛', '林黛玉', 'Steve Jobs', '宫崎骏',
+  '甄嬛', '林黛玉', '乔布斯', '宫崎骏',
   '庄子', '马斯克', '贝多芬', '居里夫人',
 ];
 

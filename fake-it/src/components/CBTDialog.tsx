@@ -15,7 +15,6 @@ interface CBTDialogProps {
   onClose: () => void;
   onError?: (msg: string) => void;
   onComplete?: (data: CBTResponse) => void;
-  onShare?: (data: CBTResponse) => void;
 }
 
 function Avatar({ characterName, domainColor, size = 36 }: { characterName: string; domainColor: string; size?: number }) {
@@ -72,7 +71,7 @@ function PastBubble({ module, domainColor, characterName }: { module: CBTModule;
   );
 }
 
-export function CBTDialog({ characterName, question, characterDomain, onClose, onError, onComplete, onShare }: CBTDialogProps) {
+export function CBTDialog({ characterName, question, characterDomain, onClose, onError, onComplete }: CBTDialogProps) {
   const [cbtData, setCbtData] = useState<CBTResponse | null>(null);
   const [currentModuleIdx, setCurrentModuleIdx] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
