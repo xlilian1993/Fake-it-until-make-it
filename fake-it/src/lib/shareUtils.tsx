@@ -72,7 +72,7 @@ function showImageForSave(imgUrl: string, filename: string): void {
       if (imgUrl.startsWith('blob:')) URL.revokeObjectURL(imgUrl);
       document.body.removeChild(overlay);
     };
-    overlay.onclick = (e) => { if (e.target === overlay) close.onclick?.(); };
+    overlay.onclick = (e) => { if (e.target === overlay) (close.onclick as unknown as () => void)(); };
 
     document.body.appendChild(overlay);
   } else {
