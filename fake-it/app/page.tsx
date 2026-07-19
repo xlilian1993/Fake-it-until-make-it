@@ -13,27 +13,27 @@ import { matchScoreToSize, SIZE_PX, DOMAIN_COLORS } from '@/lib/colors';
 import { getAvatar, isImageAvatar, getNewAvatar } from '@/lib/avatars';
 import { NEW_CHARACTER_DATA } from '@/lib/characters_new';
 
-const CANVAS_WIDTH = 375;
-const CANVAS_HEIGHT = 500;
 const MAX_ROUNDTABLE_MEMBERS = 3;
+const CARD_W = 300;
+const CARD_H = 210;
 
-// Grid zones to spread bubbles apart
+// Grid zones to spread bubbles apart (pixel-based within card)
 const ZONES = [
-  { cx: 0.22, cy: 0.18 },
-  { cx: 0.72, cy: 0.22 },
-  { cx: 0.18, cy: 0.55 },
-  { cx: 0.60, cy: 0.60 },
-  { cx: 0.42, cy: 0.38 },
+  { cx: 0.15, cy: 0.08 },
+  { cx: 0.85, cy: 0.12 },
+  { cx: 0.15, cy: 0.88 },
+  { cx: 0.85, cy: 0.85 },
+  { cx: 0.50, cy: 0.48 },
 ];
 
 function spreadPosition(size: number, index: number) {
   const zone = ZONES[index % ZONES.length];
-  const jitter = 35;
+  const jitter = 45;
   return {
-    x: Math.max(size / 2 + 8, Math.min(CANVAS_WIDTH - size / 2 - 8,
-      zone.cx * CANVAS_WIDTH + (Math.random() - 0.5) * jitter * 2)),
-    y: Math.max(size / 2 + 8, Math.min(CANVAS_HEIGHT - size / 2 - 8,
-      zone.cy * CANVAS_HEIGHT + (Math.random() - 0.5) * jitter * 2)),
+    x: Math.max(size / 2 + 4, Math.min(CARD_W - size / 2 - 4,
+      zone.cx * CARD_W + (Math.random() - 0.5) * jitter * 2)),
+    y: Math.max(size / 2 + 4, Math.min(CARD_H - size / 2 - 4,
+      zone.cy * CARD_H + (Math.random() - 0.5) * jitter * 2)),
   };
 }
 
@@ -56,10 +56,10 @@ function buildBubbles(items: RecommendItem[]): Bubble[] {
       position: spreadPosition(sizePx, i),
       animationDuration: base + Math.random() * 8,
       animationDelay: -Math.random() * 12,
-      ox: `${(Math.random() * 50 - 25).toFixed(1)}px`,
-      oy: `${(Math.random() * -60 - 10).toFixed(1)}px`,
-      mx: `${(Math.random() * 30 - 15).toFixed(1)}px`,
-      my: `${(Math.random() * -50).toFixed(1)}px`,
+      ox: `${(Math.random() * 70 - 35).toFixed(1)}px`,
+      oy: `${(Math.random() * 40 - 20).toFixed(1)}px`,
+      mx: `${(Math.random() * 50 - 25).toFixed(1)}px`,
+      my: `${(Math.random() * 60 - 20).toFixed(1)}px`,
       isMystery: item.isMystery || false,
       isRevealed: false,
       hasGlow: item.isMystery || false,
@@ -80,6 +80,7 @@ export default function Page() {
   const [loadingDone, setLoadingDone] = useState(false);
   const [spotlightChar, setSpotlightChar] = useState<{ name: string; tagline: string; quote: string; desc: string; png: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [roundTableActivated, setRoundTableActivated] = useState(false);
 
   const [roundTableMembers, setRoundTableMembers] = useState<RecommendItem[]>([]);
   const [roundTablePerspectives, setRoundTablePerspectives] = useState<{ characterName: string; viewpoint: string; story: string }[]>([]);
@@ -164,6 +165,7 @@ export default function Page() {
               if (next.length > MAX_ROUNDTABLE_MEMBERS) next.shift();
               return next;
             });
+            setRoundTableActivated(true);
           }
         }
       }
@@ -239,6 +241,20 @@ export default function Page() {
     const item = recommendCache.find(c => c.name === name);
     if (item) setCbtDomain(item.domain);
     setStoryCharacter(null); setSelectedCharacterName(name);
+  }
+
+  function handleAddToRoundTable(name: string) {
+    if (!recommendCache) return;
+    const item = recommendCache.find(c => c.name === name);
+    if (!item) return;
+    setRoundTableMembers(prev => {
+      if (prev.find(m => m.name === name)) return prev;
+      const next = [...prev, item];
+      if (next.length > MAX_ROUNDTABLE_MEMBERS) next.shift();
+      return next;
+    });
+    setRoundTableActivated(true);
+    setStoryCharacter(null);
   }
 
   async function handleRoundTableStart() {
@@ -428,6 +444,13 @@ export default function Page() {
       {/* 气泡区域 + 圆桌 */}
       {(isLoading || bubbles.length > 0) && (
       <div className="relative flex-1" style={{ minHeight: '400px' }}>
+        {/* 泡泡活动范围框 — 虚线边界 */}
+        {bubbles.length > 0 && !isLoading && (
+          <div
+            className="absolute rounded-2xl pointer-events-none"
+            style={{ border: '1px dashed rgba(0,0,0,0.07)', top: '0%', left: '6%', right: '6%', bottom: '44%' }}
+          />
+        )}
         {/* 气泡 */}
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center px-8" style={{
@@ -439,7 +462,7 @@ export default function Page() {
             {/* 引用文字 + 进度条 — 页面中间 */}
             <div className="flex-1 flex flex-col items-center justify-center w-full" style={{ maxWidth: '320px' }}>
               <p className="text-sm text-warm-gray/45 italic leading-relaxed tracking-wide mb-6 whitespace-nowrap">
-                &ldquo;你走在自己的夜里，而有人曾提灯走过同一段路。&rdquo;
+                &ldquo;把心事写下来，时光另一头，自有人回信。&rdquo;
               </p>
 
               <div className="flex flex-col items-center w-full" style={{ maxWidth: '260px', marginTop: '10vh' }}>
@@ -495,7 +518,20 @@ export default function Page() {
         )}
 
         {!isLoading && bubbles.length > 0 && (
-          <div className="absolute inset-0">
+          <>
+            {/* 全屏背景图层 */}
+            <div className="absolute inset-0" style={{
+              backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_PATH || ''}/avatars-bg.png)`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center top',
+              backgroundRepeat: 'no-repeat',
+              zIndex: -10,
+            }} />
+            {/* 白色卡片层 + 泡泡活动范围 */}
+            <div className="absolute rounded-2xl bg-white shadow-md overflow-hidden"
+              style={{ border: '1px solid rgba(0,0,0,0.04)', zIndex: 0, top: '0%', left: '6%', right: '6%', bottom: '44%' }}>
+            {/* 泡泡 */}
+            <div className="absolute" style={{ top: '20%', left: 0, right: 0, bottom: 0 }}>
             {bubbles.map((b, i) => {
               // 神秘气泡用独立组件渲染
               if (b.isMystery) {
@@ -513,17 +549,21 @@ export default function Page() {
               const isInRoundTable = roundTableMembers.some(m => m.name === b.character.name);
               return (
                 <div key={b.character.id}
-                  className="bubble-float absolute flex flex-col items-center select-none"
+                  className="absolute select-none"
                   style={{
                     left: b.position.x - sz / 2, top: b.position.y - sz / 2,
                     touchAction: 'none',
-                    '--bubble-index': i,
-                    '--ox': b.ox,
-                    '--oy': b.oy,
-                    '--mx': b.mx,
-                    '--my': b.my,
                   } as React.CSSProperties}
                 >
+                  <div
+                    className="bubble-float flex flex-col items-center"
+                    style={{
+                      '--ox': b.ox,
+                      '--oy': b.oy,
+                      '--mx': b.mx,
+                      '--my': b.my,
+                    } as React.CSSProperties}
+                  >
                   {/* 名字标签 */}
                   <span
                     className="text-[10px] font-medium text-warm-black/60 whitespace-nowrap mb-0.5"
@@ -568,11 +608,14 @@ export default function Page() {
                       分享
                     </button>
                   )}
+                  </div>
                 </div>
               );
             })}
 
           </div>
+          </div>
+          </>
         )}
 
         {!isLoading && bubbles.length === 0 && !error && (
@@ -585,13 +628,13 @@ export default function Page() {
         )}
 
         
-      {/* 圆桌区 — 三角形布局 */}
-        {bubbles.length > 0 && !isLoading && (
+      {/* 圆桌区 — 三角形布局（激活后显示） */}
+        {bubbles.length > 0 && !isLoading && roundTableActivated && (
           <div
             ref={dropZoneRef}
             className="absolute z-30"
             style={{
-              right: '20px', bottom: '20px',
+              right: '20px', bottom: '20%',
               width: '130px', height: '130px',
             }}
           >
@@ -606,11 +649,10 @@ export default function Page() {
 
             {/* 三个角色三角排列 */}
             {Array.from({ length: MAX_ROUNDTABLE_MEMBERS }).map((_, i) => {
-              // 三点钟方向：上、右下、左下
-              const angles = [-90, 30, 150]; // 上、右下、左下 各差 120°
+              const angles = [-90, 30, 150];
               const angle = (angles[i] * Math.PI) / 180;
-              const r = 42;
-              const cx = 65, cy = 65;
+              const r = 40;
+              const cx = 65, cy = 68;
               const s = 46;
               const m = roundTableMembers[i];
               const x = cx + r * Math.cos(angle) - s / 2;
@@ -646,30 +688,44 @@ export default function Page() {
             })}
 
             {/* 中心 */}
-            <div className="absolute flex flex-col items-center" style={{ left: '50%', top: '50%', transform: 'translate(-50%,-50%)' }}>
+            <div className="absolute flex flex-col items-center gap-0.5" style={{ left: '50%', top: '68px', transform: 'translate(-50%,-50%)' }}>
               {isRoundTableReady ? (
                 <button onClick={handleRoundTableStart}
-                  className="px-4 py-2 rounded-full text-xs font-semibold text-white shadow-lg transition-all hover:opacity-90 active:scale-95 pulse-soft"
+                  className="px-3 py-1.5 rounded-full text-[10px] font-semibold text-white shadow-lg transition-all hover:opacity-90 active:scale-95 pulse-soft"
                   style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))' }}>
                   开始讨论
                 </button>
-              ) : roundTableMembers.length > 0 ? (
-                <button onClick={() => setRoundTableMembers([])}
-                  className="text-[11px] text-warm-gray/40 hover:text-warm-gray transition-colors">
-                  {roundTableMembers.length}/{MAX_ROUNDTABLE_MEMBERS} · 清空
-                </button>
               ) : (
-                <span className="text-[11px] text-warm-gray/25">拖入</span>
+                <>
+                  <span className="text-[10px] font-medium text-warm-gray/40 tracking-wider">群聊</span>
+                  <span className="text-[10px] text-warm-gray/35">
+                    {roundTableMembers.length}/{MAX_ROUNDTABLE_MEMBERS}
+                  </span>
+                  {roundTableMembers.length > 0 && (
+                    <button onClick={() => setRoundTableMembers([])}
+                      className="text-[10px] text-warm-gray/35 hover:text-warm-gray transition-colors">
+                      清空
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
+        )}
+
+        {/* 圆桌未激活时 — 显示引用（卡片下方） */}
+        {bubbles.length > 0 && !isLoading && !roundTableActivated && (
+          <p className="absolute text-sm text-warm-gray/45 italic leading-relaxed tracking-wide text-center w-full"
+            style={{ top: '67%' }}>
+            &ldquo;你走在自己的夜里，而有人曾提灯走过同一段路。&rdquo;
+          </p>
         )}
       </div>
       )}
 
       <BottomBar />
 
-      <StoryModal character={storyCharacter} onClose={() => setStoryCharacter(null)} onChat={handleChat} />
+      <StoryModal character={storyCharacter} onClose={() => setStoryCharacter(null)} onChat={handleChat} onAddToRoundTable={handleAddToRoundTable} />
 
       <AnimatePresence>
         {selectedCharacterName && (

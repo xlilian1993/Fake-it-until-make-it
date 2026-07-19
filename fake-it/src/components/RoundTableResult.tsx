@@ -38,7 +38,13 @@ export function RoundTableResult({ perspectives, members, isLoading, loadingText
           role="dialog"
           aria-modal="true"
         >
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_PATH || ''}/avatars-bg.png)`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
+          }} />
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
 
           <motion.div
             className="relative w-full bg-white rounded-t-2xl shadow-2xl max-h-[85%] overflow-y-auto"

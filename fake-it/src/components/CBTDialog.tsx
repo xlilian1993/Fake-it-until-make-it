@@ -304,6 +304,20 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
                   >
                     📤 分享长图
                   </button>
+                  <button
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-xs shadow-sm hover:scale-110 transition-transform"
+                    aria-label="喜欢"
+                  >
+                    ❤️
+                  </button>
+                  <button
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-xs shadow-sm hover:scale-110 transition-transform"
+                    aria-label="不喜欢"
+                  >
+                    👎
+                  </button>
                 </div>
               </motion.div>
             )}

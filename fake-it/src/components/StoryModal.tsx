@@ -9,9 +9,10 @@ interface StoryModalProps {
   character: RecommendItem | null;
   onClose: () => void;
   onChat: (name: string) => void;
+  onAddToRoundTable: (name: string) => void;
 }
 
-export function StoryModal({ character, onClose, onChat }: StoryModalProps) {
+export function StoryModal({ character, onClose, onChat, onAddToRoundTable }: StoryModalProps) {
   const isOpen = !!character;
 
   return (
@@ -132,17 +133,30 @@ export function StoryModal({ character, onClose, onChat }: StoryModalProps) {
               </div>
               )}
 
-              {/* 和 Ta 聊 按钮 */}
-              <button
-                onClick={() => onChat(character.name)}
-                className="w-full py-3 rounded-xl font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
-                style={{
-                  background: `linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))`,
-                  boxShadow: '0 4px 12px rgba(184,169,255,0.33)',
-                }}
-              >
-                💬 和 Ta 聊
-              </button>
+              {/* 操作按钮 */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onChat(character.name)}
+                  className="flex-1 py-3 rounded-xl font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
+                  style={{
+                    background: `linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))`,
+                    boxShadow: '0 4px 12px rgba(184,169,255,0.33)',
+                  }}
+                >
+                  💬 和 Ta 聊
+                </button>
+                <button
+                  onClick={() => onAddToRoundTable(character.name)}
+                  className="flex-1 py-3 rounded-xl font-medium transition-all hover:opacity-90 active:scale-[0.98]"
+                  style={{
+                    background: 'rgba(184,169,255,0.12)',
+                    color: 'var(--color-philosopher)',
+                    border: '1px solid rgba(184,169,255,0.25)',
+                  }}
+                >
+                  👥 拉Ta群聊
+                </button>
+              </div>
             </div>
           </motion.div>
         </motion.div>

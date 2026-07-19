@@ -110,7 +110,9 @@ export function downloadCBTShare(question: string, characterName: string, module
       ${modsHtml}
     </div>
     <div style="text-align:center;margin-top:20px;padding-top:14px;border-top:1px solid rgba(0,0,0,0.06)">
-      <p style="font-size:11px;color:rgba(61,50,38,0.35);margin:0">— Fake it until you make it —</p>
+      <p style="font-size:11px;color:rgba(61,50,38,0.35);margin:0 0 12px 0">— Fake it until you make it —</p>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://xlilian.cn/fake-it" width="60" height="60" style="display:block;margin:0 auto 4px;border-radius:6px" alt="二维码" />
+      <p style="font-size:9px;color:rgba(61,50,38,0.25);margin:0">扫码体验</p>
     </div>
   `;
 
@@ -146,7 +148,9 @@ export function downloadRoundTableShare(question: string, perspectives: Perspect
     </div>
     <div>${perspHtml}</div>
     <div style="text-align:center;margin-top:20px;padding-top:14px;border-top:1px solid rgba(0,0,0,0.06)">
-      <p style="font-size:11px;color:rgba(61,50,38,0.35);margin:0">— Fake it until you make it —</p>
+      <p style="font-size:11px;color:rgba(61,50,38,0.35);margin:0 0 12px 0">— Fake it until you make it —</p>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://xlilian.cn/fake-it" width="60" height="60" style="display:block;margin:0 auto 4px;border-radius:6px" alt="二维码" />
+      <p style="font-size:9px;color:rgba(61,50,38,0.25);margin:0">扫码体验</p>
     </div>
   `;
 
