@@ -7,12 +7,12 @@ import { CBTDialog } from '@/components/CBTDialog';
 import { BottomBar } from '@/components/BottomBar';
 import { RoundTableResult } from '@/components/RoundTableResult';
 import { MysteryBubble } from '@/components/MysteryBubble';
-import { LoadingRoller } from '@/components/LoadingRoller';
 import { ShareImageModal } from '@/components/ShareImageModal';
 import type { Bubble, RecommendItem, CBTResponse } from '@/types';
 import { matchScoreToSize, SIZE_PX, DOMAIN_COLORS } from '@/lib/colors';
-import { getAvatar, isImageAvatar } from '@/lib/avatars';
+import { getAvatar, isImageAvatar, getNewAvatar } from '@/lib/avatars';
 import { getDailyMystery, toRecommendItem } from '@/lib/mystery';
+import { NEW_CHARACTER_DATA } from '@/lib/characters_new';
 
 const CANVAS_WIDTH = 375;
 const CANVAS_HEIGHT = 500;
@@ -104,6 +104,9 @@ export default function Page() {
   const [storyCharacter, setStoryCharacter] = useState<RecommendItem | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('');
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingDone, setLoadingDone] = useState(false);
+  const [spotlightChar, setSpotlightChar] = useState<{ name: string; tagline: string; quote: string; desc: string; png: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [roundTableMembers, setRoundTableMembers] = useState<RecommendItem[]>([]);
@@ -211,13 +214,31 @@ export default function Page() {
     if (!question.trim()) return;
     setError(null); setIsLoading(true); setLoadingText('正在为你寻找角色...');
     setRoundTableMembers([]); setRoundTablePerspectives([]);
+    setLoadingDone(false); setLoadingProgress(0);
+
+    // 从新角色池随机选一个 spotlight 角色
+    const newKeys = Object.keys(NEW_CHARACTER_DATA);
+    const randomKey = newKeys[Math.floor(Math.random() * newKeys.length)];
+    setSpotlightChar({ name: randomKey, ...NEW_CHARACTER_DATA[randomKey] });
+
+    // 最低展示时间 2s
+    const minDisplayTimer = new Promise(resolve => setTimeout(resolve, 2000));
+
+    // 进度模拟
+    const progressTimer = setInterval(() => {
+      setLoadingProgress(p => {
+        if (p >= 85) return p;
+        const step = p < 20 ? 2.5 : p < 50 ? 1.8 : 1;
+        return Math.min(p + step, 85);
+      });
+    }, 250);
 
     fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/recommend`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question }),
     })
       .then(async (res) => { if (!res.ok) { const e = await res.json(); throw new Error(e.error || '推荐失败'); } return res.json(); })
-      .then((data) => {
+      .then(async (data) => {
           const chars: RecommendItem[] = data.characters;
           const mysteryItem = toRecommendItem(getDailyMystery());
           const alreadyExists = chars.some((c) => c.name === mysteryItem.name);
@@ -229,9 +250,17 @@ export default function Page() {
           }
           setRecommendCache(allChars);
           setBubbles(bubs);
-          setIsLoading(false);
+          clearInterval(progressTimer);
+          setLoadingProgress(100);
+          await minDisplayTimer;
+          setLoadingDone(true);
         })
-      .catch((e) => { setError(e instanceof Error ? e.message : '获取角色失败'); setIsLoading(false); });
+      .catch(async (e) => {
+        clearInterval(progressTimer);
+        await minDisplayTimer;
+        setError(e instanceof Error ? e.message : '获取角色失败');
+        setIsLoading(false);
+      });
   }
 
   function handleBubbleClick(name: string) {
@@ -300,6 +329,11 @@ export default function Page() {
     }));
   }
 
+  function handleGoSee() {
+    setIsLoading(false);
+    setLoadingDone(false);
+  }
+
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
   }
@@ -309,59 +343,81 @@ export default function Page() {
   const isEmpty = bubbles.length === 0 && !isLoading;
 
   return (
-    <div className={`flex flex-col h-full ${isEmpty ? 'justify-end' : ''}`}>
-      {/* 空态提示 */}
+    <div className="flex flex-col h-full">
+      {/* 空态 — 顶部诗意文字 + 输入框在屏幕下3/4处 */}
       {isEmpty && !error && (
-        <div className="flex-1 relative overflow-hidden">
-          {/* 静态装饰头像 */}
-          {[
-            { src: '/fake-it/avatars/zhenhuan.png', top: '5%', left: '8%', size: 88, opacity: 0.16 },
-            { src: '/fake-it/avatars/jobs.png', top: '16%', right: '6%', size: 76, opacity: 0.13 },
-            { src: '/fake-it/avatars/miyazaki.png', top: '40%', left: '4%', size: 72, opacity: 0.12 },
-            { src: '/fake-it/avatars/beethoven.png', top: '35%', right: '8%', size: 84, opacity: 0.14 },
-            { src: '/fake-it/avatars/zhuangzi.png', top: '58%', left: '18%', size: 72, opacity: 0.11 },
-            { src: '/fake-it/avatars/curie.png', top: '52%', right: '4%', size: 64, opacity: 0.13 },
-            { src: '/fake-it/avatars/lindaiyu.png', top: '70%', left: '4%', size: 76, opacity: 0.10 },
-            { src: '/fake-it/avatars/musk.png', top: '8%', left: '48%', size: 68, opacity: 0.12 },
-          ].map((a, i) => (
-            <img
-              key={i}
-              src={a.src}
-              alt=""
-              style={{
-                position: 'absolute',
-                top: a.top,
-                left: a.left,
-                right: a.right,
-                width: a.size,
-                height: a.size,
-                borderRadius: '50%',
-                opacity: a.opacity,
-                filter: 'grayscale(30%)',
-                pointerEvents: 'none',
-              }}
-            />
-          ))}
-          <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
-            <p className="text-lg font-heading font-semibold text-warm-black/70 mb-2">
-              Fake It Until You Make It
+        <div className="flex-1 relative" style={{
+          backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_PATH || ''}/avatars-bg.png)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+        }}>
+          <div className="px-7 pt-8 text-center">
+            <p className="text-[13px] text-warm-gray/40 tracking-wide mb-5">欢迎来到这里。</p>
+            <p className="text-xs text-warm-gray/35 leading-relaxed tracking-wide mb-5">
+              此刻，轻抚过你的风，落在你心头的雨<br />
+              千百年前，也曾穿过他人的灵魂，打湿过他人的窗。
             </p>
-            <p className="text-sm text-warm-gray/50">
-              把心事放进来的这一刻，就已经有人懂了
+            <p className="text-xs text-warm-gray/35 leading-relaxed tracking-wide mb-5">
+              你所有藏在心里的念想和感受，
             </p>
+            <p className="text-xs text-warm-gray/35 leading-relaxed tracking-wide mb-5">
+              苏轼在黄州的江边吟过<br />
+              三毛在撒哈拉的星空下望过<br />
+              贝多芬在听不见的世界里听过<br />
+              梵高在普罗旺斯的麦田里画过——
+            </p>
+            <p className="text-xs text-warm-gray/35 leading-relaxed tracking-wide mb-5">
+              有人把它写成了诗，有人把它种成了树，<br />
+              有人把它谱成了曲，有人把它画成了星空。
+            </p>
+            <p className="text-xs text-warm-gray/35 leading-relaxed tracking-wide mb-5">
+              你的心情并不孤单，<br />
+              它只是还没遇见懂它的人。
+            </p>
+            <p className="text-xs text-warm-gray/40 leading-relaxed tracking-wide mb-5">
+              写下来吧，<br />
+              让那些跨越时空的灵魂遇见你。
+            </p>
+            <p className="text-[13px] text-warm-gray/40 italic tracking-wider">
+              &ldquo;总有一个灵魂，懂你的此刻&rdquo;
+            </p>
+          </div>
+
+          {/* 空态输入框 — 定位在 ~75% 高度 */}
+          <div className="flex-shrink-0 px-5 pb-8" style={{ marginTop: '18vh' }}>
+            <div className="flex gap-2 items-end">
+              <textarea value={question} onChange={(e) => {
+                  setQuestion(e.target.value);
+                  const el = e.target;
+                  el.style.height = 'auto';
+                  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+                }}
+                onKeyDown={handleKeyDown} placeholder="今天想聊点什么" maxLength={200} rows={1}
+                className="input-warm flex-1 px-4 py-3 text-sm text-warm-black placeholder:text-warm-gray/50 rounded-2xl resize-none"
+                style={{ minHeight: '48px', maxHeight: '120px' }}
+                aria-label="输入你的问题" />
+              <button onClick={handleSubmit} disabled={!question.trim() || isLoading}
+                className="px-5 py-3 rounded-2xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, var(--color-philosopher), var(--color-rebel))', minHeight: '48px' }}
+                aria-label="提交问题">
+                {isLoading ? '...' : '→'}
+              </button>
+            </div>
+            {error && <p className="text-xs text-red-500 mt-1.5 px-1">{error}</p>}
           </div>
         </div>
       )}
 
-      {/* 提示 / 输入框 */}
+      {/* 提示 / 输入框 — 非空态才有 */}
       {bubbles.length > 0 && !isLoading ? (
         <div className="px-5 pt-4 pb-1 flex-shrink-0">
           <p className="text-sm text-warm-gray/50 text-center">
             点击气泡跟TA聊聊，或者拖进圆桌群聊
           </p>
         </div>
-      ) : (
-        <div className={`px-5 flex-shrink-0 ${isEmpty ? 'pb-8' : 'pt-3 pb-1'}`}>
+      ) : !isEmpty && !isLoading ? (
+        <div className="px-5 pt-3 pb-1 flex-shrink-0">
           <div className="flex gap-2 items-end">
             <textarea value={question} onChange={(e) => {
                 setQuestion(e.target.value);
@@ -387,15 +443,74 @@ export default function Page() {
             </p>
           )}
         </div>
-      )}
+      ) : null}
 
       {/* 气泡区域 + 圆桌 */}
       {(isLoading || bubbles.length > 0) && (
       <div className="relative flex-1" style={{ minHeight: '400px' }}>
         {/* 气泡 */}
         {isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <LoadingRoller text={loadingText} />
+          <div className="absolute inset-0 flex flex-col items-center px-8" style={{
+            backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_PATH || ''}/avatars-bg.png)`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
+          }}>
+            {/* 引用文字 + 进度条 — 页面中间 */}
+            <div className="flex-1 flex flex-col items-center justify-center w-full" style={{ maxWidth: '320px' }}>
+              <p className="text-sm text-warm-gray/45 italic leading-relaxed tracking-wide mb-6 whitespace-nowrap">
+                &ldquo;你走在自己的夜里，而有人曾提灯走过同一段路。&rdquo;
+              </p>
+
+              <div className="flex flex-col items-center w-full" style={{ maxWidth: '260px', marginTop: '10vh' }}>
+              <div className="w-full rounded-full overflow-hidden" style={{ height: '4px', background: 'rgba(0,0,0,0.08)' }}>
+                <div className="h-full rounded-full transition-all duration-300 ease-out"
+                  style={{
+                    width: `${loadingProgress}%`,
+                    background: 'linear-gradient(90deg, #b8a088, #8b7355)',
+                  }} />
+              </div>
+              <div className="flex items-center gap-3 mt-3">
+                <p className="text-xs text-warm-gray/40">{loadingDone ? '角色已就绪' : loadingText}</p>
+                {loadingDone && (
+                  <button
+                    onClick={handleGoSee}
+                    className="px-5 py-1.5 rounded-full text-xs font-semibold shadow-sm active:scale-95 transition-all hover:shadow-md"
+                    style={{ background: 'rgba(180,160,140,0.15)', color: '#8b7355', border: '1px solid rgba(139,115,85,0.2)' }}
+                  >
+                    去看看
+                  </button>
+                )}
+              </div>
+            </div>
+
+            </div>
+            {/* 随机人物卡片 */}
+            {spotlightChar && (
+              <div className="rounded-2xl shadow-lg"
+                style={{ width: '280px', maxWidth: 'calc(100vw - 64px)', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(0,0,0,0.04)', marginBottom: '20vh' }}>
+                {/* 头像区 */}
+                <div className="flex items-center gap-4 px-6 pt-16 pb-12">
+                  {(() => {
+                    const av = getNewAvatar(spotlightChar.name);
+                    return isImageAvatar(av) ? (
+                      <img src={av} alt={spotlightChar.name}
+                        style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.6)', flexShrink: 0, opacity: 0.65 }} />
+                    ) : (
+                      <span style={{ width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', flexShrink: 0, opacity: 0.65, background: 'linear-gradient(135deg, rgba(245,240,232,0.5), rgba(237,228,211,0.5))' }}>🫧</span>
+                    );
+                  })()}
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold truncate" style={{ color: 'rgba(62,50,40,0.55)' }}>{spotlightChar.name}</h3>
+                    <p className="text-xs mt-0.5" style={{ color: 'rgba(62,50,40,0.4)' }}>{spotlightChar.tagline}</p>
+                  </div>
+                </div>
+                {/* 描述 */}
+                <div className="px-6 pt-4 pb-20">
+                  <p className="text-sm" style={{ lineHeight: '1.8', color: 'rgba(62,50,40,0.45)' }}>{spotlightChar.desc}</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
