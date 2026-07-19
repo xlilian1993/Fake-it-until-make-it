@@ -111,7 +111,8 @@ export default function Page() {
   const [roundTablePerspectives, setRoundTablePerspectives] = useState<{ characterName: string; viewpoint: string; story: string }[]>([]);
   const [roundTableLoading, setRoundTableLoading] = useState(false);
   const [roundTableLoadingText, setRoundTableLoadingText] = useState('');
-  const [_completedCBTSessions, setCompletedCBTSessions] = useState<Record<string, { question: string; modules: CBTResponse['modules'] }>>({});
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [completedCBTSessions, setCompletedCBTSessions] = useState<Record<string, { question: string; modules: CBTResponse['modules'] }>>({});
   const [shareTarget, setShareTarget] = useState<{ characterName: string; question: string; modules: CBTResponse['modules'] } | null>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
