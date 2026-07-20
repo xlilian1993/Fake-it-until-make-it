@@ -106,3 +106,28 @@ export const CHARACTER_HOTNESS: Record<string, number> = {
 export function getCharacterHotness(name: string): number {
   return CHARACTER_HOTNESS[name] || 50;
 }
+
+/** 角色自称（第一人称代词），用于 LLM 生成角色第一人称内容时保持一致 */
+export const CHARACTER_SELF_REF: Record<string, string> = {
+  '甄嬛': '本宫',
+  '安陵容': '臣妾',
+  '孙悟空': '俺老孙',
+  '唐僧': '贫僧',
+  '猪八戒': '俺老猪',
+  '东方不败': '杂家',
+  '武则天': '朕',
+  '曹操': '孤',
+  '诸葛亮': '亮',
+  '苏轼': '子瞻',
+  '孔子': '丘',
+  '李白': '白',
+  '王熙凤': '凤姐儿',
+  '刘姥姥': '老身',
+  '司马懿': '吾',
+  '庄子': '吾',
+  '王阳明': '吾',
+};
+
+export function getCharacterSelfRef(name: string): string {
+  return CHARACTER_SELF_REF[name] || '我';
+}
