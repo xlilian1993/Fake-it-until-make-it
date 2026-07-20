@@ -54,7 +54,29 @@ export function CBTModuleView({ module, characterName, avatarColor, startTyping,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startTyping]);
 
-  const showAction = module.index === 5 && (typingDone || !startTyping) && !!module.action?.firstStep;
+  const hasActions = module.index === 5 && !!module.action?.firstStep;
+
+  if (module.index === 5 && !hasActions) {
+    // 防御：step 5 缺少 action 数据时，用 content 兜底
+    return (
+      <div className="module-enter flex gap-3 mb-5">
+        <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 self-start" style={{
+          background: `radial-gradient(circle at 35% 30%, ${avatarColor}, ${avatarColor}dd)`,
+          border: '1.5px solid rgba(255,255,255,0.6)',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.08)', fontSize: '1rem', overflow: 'hidden',
+        }}>
+          {isImageAvatar(av) ? <img src={av} alt={characterName} className="w-full h-full rounded-full object-cover" /> : av}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: '#fff', borderLeft: `3px solid ${avatarColor}` }}>
+            <p className="text-sm text-warm-black leading-relaxed whitespace-pre-wrap">
+              {module.content || '看看今天的行动建议吧~'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!startTyping && !isTyping && !typingDone) return null;
 
@@ -85,7 +107,7 @@ export function CBTModuleView({ module, characterName, avatarColor, startTyping,
           </p>
         </div>
 
-        {showAction && (
+        {hasActions && (
           <div className="mt-2 space-y-2 fade-in-up">
             <div className="rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm" style={{ background: `${avatarColor}18` }}>
               <p className="text-xs text-warm-gray mb-1">🎬 今天的排练</p>
