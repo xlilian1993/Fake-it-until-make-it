@@ -321,11 +321,14 @@ export default function Page() {
       const p2 = d2.perspective;
       setRoundTablePerspectives([p1, p2]);
 
-      // 第三人（基于第二人）
-      setRoundTableLoadingText(`${names[2]} 正在接话 ${names[1]}...`);
+      // 第三人（基于前两人）
+      setRoundTableLoadingText(`${names[2]} 正在接话 ${names[0]} 和 ${names[1]}...`);
       const r3 = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/roundtable`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ characterName: names[2], question, previous: { name: p2.characterName, viewpoint: p2.viewpoint, story: p2.story } }),
+        body: JSON.stringify({ characterName: names[2], question, previous: [
+          { name: p1.characterName, viewpoint: p1.viewpoint, story: p1.story },
+          { name: p2.characterName, viewpoint: p2.viewpoint, story: p2.story },
+        ] }),
       });
       if (!r3.ok) { const e = await r3.json(); throw new Error(e.error); }
       const d3 = await r3.json();

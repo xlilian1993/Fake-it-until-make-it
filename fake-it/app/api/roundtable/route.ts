@@ -7,9 +7,9 @@ export const maxDuration = 60;
 function buildPrompt(
   characterName: string,
   question: string,
-  previous?: { name: string; viewpoint: string; story: string }
+  previousList?: { name: string; viewpoint: string; story: string }[]
 ): string {
-  if (!previous) {
+  if (!previousList || previousList.length === 0) {
     return `你是 ${characterName}。正在参加一场圆桌讨论，你是第一个发言的人。
 
 用户问题："${question}"
@@ -23,20 +23,25 @@ function buildPrompt(
 }`;
   }
 
+  const previousText = previousList.map((p, i) =>
+    `第${i + 1}位发言的是 ${p.name}，Ta 的观点是："${p.viewpoint}"，Ta 分享的经历是："${p.story}"`
+  ).join('\n\n');
+
+  const lastName = previousList[previousList.length - 1].name;
+
   return `你是 ${characterName}。正在参加一场圆桌讨论。
 
 用户问题："${question}"
 
-上一位发言的是 ${previous.name}，Ta 的观点是：
-"${previous.viewpoint}"
-Ta 分享的经历是：
-"${previous.story}"
+在你之前已有 ${previousList.length} 位发言：
 
-现在轮到你了。请先针对 ${previous.name} 的发言做简短回应（一句），再给出你自己的核心立场和相关经历。返回 JSON（不要其他文字）：
+${previousText}
+
+现在轮到你了。请先针对上面各位（尤其是 ${lastName}）的发言做简短回应（一句），再给出你自己的核心立场和相关经历。返回 JSON（不要其他文字）：
 
 {
   "characterName": "${characterName}",
-  "viewpoint": "先回应上一位（一句），再给出你的核心立场（一句）",
+  "viewpoint": "先回应前几位（一句），再给出你的核心立场（一句）",
   "story": "用你的口吻讲述一个相关经历，2-3句话"
 }`;
 }
@@ -52,7 +57,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const prompt = buildPrompt(characterName, question, previous || undefined);
+    const prevList = previous || undefined;
+    const prompt = buildPrompt(characterName, question, prevList ? (Array.isArray(prevList) ? prevList : [prevList]) : undefined);
     const raw = await callLLM(prompt);
     const json = extractJSON(raw);
     const perspective = JSON.parse(json);
