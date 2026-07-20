@@ -31,7 +31,6 @@ const CHARACTERS = [
   '王菲',
   '张伟丽',
   '阿甘',
-  '安迪',
   '路飞',
   '邓布利多',
   '伍尔夫',
@@ -43,8 +42,6 @@ const CHARACTERS = [
   '乔治·奥威尔',
   '刘姥姥',
   '楚门',
-  '里昂',
-  '玛蒂尔达',
   '王熙凤',
 ];
 
@@ -86,7 +83,6 @@ export const CHARACTER_HOTNESS: Record<string, number> = {
   '王菲': 72,
   '张伟丽': 94,
   '阿甘': 79,
-  '安迪': 79,
   '路飞': 85,
   '邓布利多': 79,
   '伍尔夫': 60,
@@ -98,8 +94,6 @@ export const CHARACTER_HOTNESS: Record<string, number> = {
   '乔治·奥威尔': 80,
   '刘姥姥': 85,
   '楚门': 88,
-  '里昂': 85,
-  '玛蒂尔达': 82,
   '王熙凤': 88,
 };
 

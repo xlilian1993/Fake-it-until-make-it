@@ -34,7 +34,6 @@ const AVATAR_MAP: Record<string, string> = {
   '王菲': '/avatars/wangfei.png',
   '张伟丽': '/avatars/张伟丽.png',
   '阿甘': '/avatars/阿甘.png',
-  '安迪': '/avatars/安迪.png',
   '路飞': '/avatars/路飞.png',
   '邓布利多': '/avatars/邓布利多.png',
   '伍尔夫': '/avatars/伍尔夫.png',
@@ -46,8 +45,6 @@ const AVATAR_MAP: Record<string, string> = {
   '乔治·奥威尔': '/avatars/乔治·奥威尔.png',
   '刘姥姥': '/avatars/刘姥姥.png',
   '楚门': '/avatars/楚门.png',
-  '里昂': '/avatars/里昂.png',
-  '玛蒂尔达': '/avatars/玛蒂尔达.png',
   '王熙凤': '/avatars/王熙凤.png',
 };
 
@@ -126,7 +123,6 @@ const NEW_AVATAR_MAP: Record<string, string> = {
   '李子柒': '/avatars/李子柒.png',
   '华罗庚': '/avatars/华罗庚.png',
   // 阿甘 → 已移至旧池 AVATAR_MAP
-  // 安迪 → 已移至旧池 AVATAR_MAP
   // 路飞 → 已移至旧池 AVATAR_MAP
   '图灵': '/avatars/图灵.png',
   // 邓布利多 → 已移至旧池 AVATAR_MAP

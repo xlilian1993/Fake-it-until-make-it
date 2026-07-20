@@ -201,8 +201,7 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
       </div>
 
       {/* 步骤指示器 */}
-      {!allComplete && (
-        <div className="flex-shrink-0 px-3 pt-2 pb-1">
+      <div className="flex-shrink-0 px-3 pt-2 pb-1">
           <p className="text-center text-xs text-warm-gray/50 italic mb-1">
             &ldquo;你此刻的心情，千百年前就有人想好了答案。&rdquo;
           </p>
@@ -245,7 +244,6 @@ export function CBTDialog({ characterName, question, characterDomain, onClose, o
             </>
           ) : null}
         </div>
-      )}
 
       {/* 内容区 — 聊天流 */}
       <div className="flex-1 overflow-y-auto px-4 py-4" onClick={handleBubbleClick}>
