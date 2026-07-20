@@ -43,7 +43,6 @@ const CHARACTERS = [
   '楚门',
   '唐僧',
   '猪八戒',
-  '福尔摩斯',
   '东方不败',
   '王熙凤',
 ];
@@ -98,7 +97,6 @@ export const CHARACTER_HOTNESS: Record<string, number> = {
   '楚门': 88,
   '唐僧': 90,
   '猪八戒': 88,
-  '福尔摩斯': 95,
   '东方不败': 90,
   '王熙凤': 88,
 };

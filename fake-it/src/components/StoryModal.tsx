@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import type { RecommendItem } from '@/types';
 import { getAvatar, isImageAvatar } from '@/lib/avatars';
+import { getCharacterSelfRef } from '@/lib/characters';
 import { DOMAIN_COLORS } from '@/lib/colors';
 
 interface StoryModalProps {
@@ -83,6 +84,12 @@ export function StoryModal({ character, onClose, onChat, onAddToRoundTable }: St
                 <div>
                   <h2 className="font-heading text-xl text-warm-black leading-tight">
                     {character.story?.intro?.name || character.name}
+                    {(() => {
+                      const selfRef = getCharacterSelfRef(character.name);
+                      return selfRef !== '我' ? (
+                        <span className="text-sm text-warm-gray font-normal ml-1">· {selfRef}</span>
+                      ) : null;
+                    })()}
                   </h2>
                   <p className="text-sm text-warm-gray mt-0.5">
                     {character.story?.intro?.source || ''}

@@ -46,7 +46,6 @@ const AVATAR_MAP: Record<string, string> = {
   '楚门': '/avatars/楚门.png',
   '唐僧': '/avatars/唐僧.png',
   '猪八戒': '/avatars/猪八戒.png',
-  '福尔摩斯': '/avatars/福尔摩斯.png',
   '东方不败': '/avatars/东方不败.png',
   '王熙凤': '/avatars/王熙凤.png',
 };
