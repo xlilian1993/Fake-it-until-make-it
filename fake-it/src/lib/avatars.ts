@@ -19,7 +19,6 @@ const AVATAR_MAP: Record<string, string> = {
   '泰勒斯威夫特': '/avatars/taylorswift.png',
   '达芬奇': '/avatars/davinci.png',
   '莫扎特': '/avatars/mozart.png',
-  '张桂梅': '/avatars/zhangguimei.jpg',
   '安陵容': '/avatars/anlingrong.png',
   '苏轼': '/avatars/sushi.png',
   '苏东坡': '/avatars/sushi.png',
@@ -45,6 +44,10 @@ const AVATAR_MAP: Record<string, string> = {
   '乔治·奥威尔': '/avatars/乔治·奥威尔.png',
   '刘姥姥': '/avatars/刘姥姥.png',
   '楚门': '/avatars/楚门.png',
+  '唐僧': '/avatars/唐僧.png',
+  '猪八戒': '/avatars/猪八戒.png',
+  '福尔摩斯': '/avatars/福尔摩斯.png',
+  '东方不败': '/avatars/东方不败.png',
   '王熙凤': '/avatars/王熙凤.png',
 };
 

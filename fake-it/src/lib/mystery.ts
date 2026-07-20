@@ -6,7 +6,7 @@ export function getMysteryAvatar(): string {
   return `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/mystery-face.png`;
 }
 
-const MYSTERY_POOL = ['泰勒斯威夫特', '哈兰德', '甄嬛'];
+const MYSTERY_POOL = ['甄嬛', '孙悟空', '东方不败'];
 
 /** 从三人池中随机选出一个今日限定角色 */
 export function getDailyMystery(): MysteryEntry {
