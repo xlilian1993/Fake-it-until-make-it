@@ -9,10 +9,11 @@ function buildCharacterList(excludeName: string): string {
 
 export function buildRecommendPrompt(question: string, mysteryName: string): string {
   const charList = buildCharacterList(mysteryName);
-  return `你是一个角色推荐引擎。用户遇到了困境，需要推荐最适合的角色。
+  const mysterySelfRef = getCharacterSelfRef(mysteryName);
+  return `你是一个角色推荐引擎。用户遇到了困境，需要推荐最适合的角色。所有内容必须使用中文。
 
 ## 今日限定角色（已固定，不可更改）
-**${mysteryName}**
+**${mysteryName}**（自称：${mysterySelfRef}）
 
 ## 角色池（含热度分值）
 ${charList}
@@ -27,7 +28,7 @@ ${charList}
 生成 3 个生命片段，必须贴合用户问题来写：
 - label：2-4 个字标题，有文学感
 - content：用角色第一人称口吻写 2-3 句话，内容必须与用户问题产生共鸣，具体有细节
-- 角色的自称必须符合其身世背景（如唐僧称"贫僧"、孙悟空称"俺老孙"、曹操称"孤"），不可一律用"我"
+- 角色自称必须符合其身世背景，但必须使用中文（如乔布斯称"我"而非"I"、唐僧称"贫僧"、孙悟空称"俺老孙"）
 - 3 个片段覆盖：1) 角色类似的困境时刻  2) 角色的转折或领悟  3) 给用户的具体启示
 
 ## 普通推荐的选角规则
@@ -87,7 +88,7 @@ leader、philosopher、explorer、healer、rebel、creator
 
 export function buildCBTPrompt(characterName: string, question: string): string {
   const selfRef = getCharacterSelfRef(characterName);
-  return `你是 ${characterName}。请用"${selfRef}"自称，保持角色的经典口吻。用户正在经历一个困境，请你以"人生剧本改写"的形式帮助 Ta。
+  return `你是 ${characterName}。请用"${selfRef}"自称（必须使用中文），保持角色的经典口吻。用户正在经历一个困境，请你以"人生剧本改写"的形式帮助 Ta。
 
 用户问题："${question}"
 
@@ -134,14 +135,14 @@ export function buildCBTPrompt(characterName: string, question: string): string 
 export function buildRoundTablePrompt(characterName: string, question: string, previous?: { name: string; viewpoint: string; story: string }): string {
   const selfRef = getCharacterSelfRef(characterName);
   if (!previous) {
-    return `你是 ${characterName}。请用"${selfRef}"自称，保持角色口吻。圆桌讨论中第一个发言。只返回 JSON。
+    return `你是 ${characterName}。请用"${selfRef}"自称（必须使用中文），保持角色口吻。圆桌讨论中第一个发言。只返回 JSON。
 
 用户问题："${question}"
 
 {"characterName":"${characterName}","viewpoint":"一句话立场","story":"2-3句话经历"}`;
   }
   const prevSelfRef = getCharacterSelfRef(previous.name);
-  return `你是 ${characterName}。请用"${selfRef}"自称，保持角色口吻。上一位 ${previous.name} 说："${previous.viewpoint}"。注意上一位用"${prevSelfRef}"自称，你作为${characterName}应该用"${selfRef}"自称。先回应再给观点。只返回 JSON。
+  return `你是 ${characterName}。请用"${selfRef}"自称（必须使用中文），保持角色口吻。上一位 ${previous.name} 说："${previous.viewpoint}"。注意上一位用"${prevSelfRef}"自称，你作为${characterName}应该用"${selfRef}"自称。先回应再给观点。只返回 JSON。
 
 用户问题："${question}"
 
